@@ -26,7 +26,8 @@ local camera
 
 function _init()
   camera = {
-    x = 0, y = 0, z = 0
+    x = 0, y = 0, z = 0,
+    pitch = 0, roll = 0, yaw = 0
   }
 
   
@@ -82,15 +83,26 @@ function _update()
   if btn(4) then camera.z = camera.z + 0.1 end
   if btn(5) then camera.z = camera.z - 0.1 end
   
+  if btn(8) then camera.yaw = camera.yaw - 0.001 end
+  if btn(9) then camera.yaw = camera.yaw + 0.001 end
+  if btn(10) then camera.pitch = camera.pitch - 0.001 end
+  if btn(11) then camera.pitch = camera.pitch + 0.001 end
+  if btn(14) then camera.roll = camera.roll + 0.001 end
+  if btn(15) then camera.roll = camera.roll - 0.001 end
+  
 end
 
 function _draw()
+  local a = camera.yaw
+  local b = camera.pitch
+  local g = camera.roll
   world_to_cam:set(0, 0,
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    camera.x, camera.y, camera.z, 1
+    cos(b)*cos(g), -cos(b)*sin(g), sin(b), camera.x,
+    cos(a)*sin(g)+sin(a)*sin(b)*cos(g), cos(a)*cos(g)-sin(a)*sin(b)*sin(g), -sin(a)*cos(b), camera.y,
+    sin(a)*sin(g)-cos(a)*sin(b)*cos(g), sin(a)*cos(g)+cos(a)*sin(b)*sin(g), cos(a)*cos(b), camera.y,
+    0, 0, 0, 1
   )
+  world_to_cam:transpose(true)
 
   cls(21)
 

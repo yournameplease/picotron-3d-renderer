@@ -101,8 +101,8 @@ function Faces:draw_faces(draw_vertices)
 
   self.data:sort(Z_COL, true)
 
-  -- for i = 0, self.length-1 do
-  for i = 0, 0 do
+  for i = 0, self.length-1 do
+  -- for i = 0, 0 do
     local v0, v1, v2, v3, c, z = self.data:get(0, i, 6)
 
     -- if z < FOCAL_LENGTH then break end
@@ -172,7 +172,7 @@ function Faces:draw_faces(draw_vertices)
       right_y = flr(y_min)
     end
 
-    if y_max < 0 then
+    if y_max > SCREEN_HEIGHT - 1  then
       local i_next = (y_max_i + 1) % 4
       local i_prev = (y_max_i + 3) % 4
 
@@ -234,7 +234,7 @@ function Faces:draw_faces(draw_vertices)
           lines_buffer:lerp(right_y * L_LEN + L_X1_COL, len, L_LEN, 1)
           break
         else
-          local right_y_next = points[j].y
+          local right_y_next = flr(points[j].y)
           local len = right_y_next - right_y
           lines_buffer:set(L_X1_COL, right_y_next, points[j].x)
           lines_buffer:lerp(right_y * L_LEN + L_X1_COL, len, L_LEN, 1)

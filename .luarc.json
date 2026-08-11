@@ -1,0 +1,48 @@
+{
+    "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+    "workspace.checkThirdParty": false,
+    "workspace.library": [
+        "lib",
+        "crane",
+        "addons/busted/library",
+        "addons/luassert/library",
+        "addons/luassert",
+        "addons"
+    ],
+    "workspace.userThirdParty": ["addons"],
+    "workspace.ignoreDir": ["addons", "*.p64", ".git"],
+    "runtime.version": "Lua 5.4",
+    "diagnostics.severity": {
+        "redefined-local": "Warning"
+    },
+    "diagnostics.disable": [
+        "trailing-space",
+        "lowercase-global"
+    ],
+    "runtime.builtin": {
+        "basic": "enable",
+        "bit": "disable",
+        "bit32": "disable",
+        "builtin": "enable",
+        "coroutine": "enable",
+        "debug": "enable",
+        "ffi": "disable",
+        "io": "disable",
+        "jit": "disable",
+        "math": "enable",
+        "os": "enable",
+        "package": "enable",
+        "string": "enable",
+        "table": "enable",
+        "table.clear": "disable",
+        "table.new": "disable",
+        "utf8": "enable"
+    },
+    "runtime.special": {
+        "include": "require"
+    },
+    "format.defaultConfig": {
+        "indent_style": "space",
+        "indent_size": 2
+    }
+}

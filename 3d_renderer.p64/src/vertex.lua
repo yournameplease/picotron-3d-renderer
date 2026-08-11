@@ -51,7 +51,7 @@ end
 ---@param target userdata
 ---@param matrix userdata
 function Vertices:transform(target, matrix)
-  self.data:matmul3d(target, matrix, 1)
+  self.data:matmul(matrix, target, 1)
 end
 
 return vertices

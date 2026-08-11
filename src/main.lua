@@ -1,4 +1,5 @@
 local vertices = require("src.vertex")
+local faces = require("src.face")
 
 SCREEN_WIDTH = 480
 SCREEN_HEIGHT = 270
@@ -14,6 +15,7 @@ ALPHA_V = -F * V_0
 -- vertices
 
 local v
+local f
 local proj
 local image
 local world_to_cam
@@ -71,6 +73,16 @@ function _init()
   v = vertices.of(cube_vertices)
   v_proj = vertices.of(cube_vertices)
   v_cam = vertices.of(cube_vertices)
+
+
+  f = faces.of({
+    {v1 = 0, v2 = 1, v0 = 2, v3 = 3},
+    {v1 = 4, v2 = 5, v0 = 6, v3 = 7},
+    {v1 = 0, v2 = 1, v0 = 4, v3 = 5},
+    {v1 = 2, v2 = 3, v0 = 6, v3 = 7},
+    {v1 = 0, v2 = 2, v0 = 4, v3 = 6},
+    {v1 = 1, v2 = 3, v0 = 5, v3 = 7},
+  })
 end
 
 
@@ -89,7 +101,6 @@ function _update()
   if btn(11) then camera.pitch = camera.pitch + 0.001 end
   if btn(14) then camera.roll = camera.roll + 0.001 end
   if btn(15) then camera.roll = camera.roll - 0.001 end
-  
 end
 
 function _draw()
@@ -143,6 +154,9 @@ function _draw()
   end
 
   color(7)
+  f:draw_wireframes(v_cam)
+  
+  color(8)
   pset(v_cam.data, 0, v_cam.length, 2, 4)
 
 end

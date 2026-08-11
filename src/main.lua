@@ -16,6 +16,8 @@ ALPHA_V = -F * V_0
 local v
 local proj
 local image
+local world_to_cam
+local cam_to_screen
 local v_proj
 local v_cam
 
@@ -47,24 +49,22 @@ function _init()
     end
   end
 
-  proj = userdata("f64", 4, 4)
-  proj:set(0, 0,
+  world_to_cam = userdata("f64", 4, 4)
+  world_to_cam:set(0, 0,
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
-    0, 0, -1/F, 1
+    camera.x, camera.y, camera.z, 1
   )
-  proj:transpose(true)
-  
 
-  image = userdata("f64", 4, 4)
-  image:set(0, 0,
+  cam_to_screen = userdata("f64", 4, 4)
+  cam_to_screen:set(0, 0,
     ALPHA_U, 0, U_0, 0,
     0, ALPHA_V, V_0, 0,
     0, 0, 1, 0,
     0, 0, 0, 0
   )
-  image:transpose(true)
+  cam_to_screen:transpose(true)
 
   
   v = vertices.of(cube_vertices)
@@ -85,15 +85,24 @@ function _update()
 end
 
 function _draw()
+  world_to_cam:set(0, 0,
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    camera.x, camera.y, camera.z, 1
+  )
+
   cls(21)
 
-  DEBUG = true
-  -- DEBUG = false
+  -- DEBUG = true
+  DEBUG = false
   
+  color(6)
+  print("CPU: " .. stat(1))
   print("CAM: " .. camera.x .. "," .. camera.y .. "," .. camera.z)
 
   color(5)
-  v:transform(v_proj.data, proj)
+  v:transform(v_proj.data, world_to_cam)
   if DEBUG then
   print("v_proj")
   print(v_proj.data[0] .. ", " .. v_proj.data[1] .. ", " .. v_proj.data[2] .. ", " .. v_proj.data[3] .. ", ")
@@ -106,7 +115,7 @@ function _draw()
   print(v_proj.data[28+0] .. ", " .. v_proj.data[28+1] .. ", " .. v_proj.data[28+2] .. ", " .. v_proj.data[28+3] .. ", ")
   end
 
-  v_proj:transform(v_cam.data, image)
+  v_proj:transform(v_cam.data, cam_to_screen)
   v_cam.data:div(v_cam.data, true, 2, 0, 1, 4, 4, v_proj.length)
   v_cam.data:div(v_cam.data, true, 2, 1, 1, 4, 4, v_proj.length)
   if DEBUG then
@@ -121,7 +130,7 @@ function _draw()
   print(v_cam.data[28+0] .. ", " .. v_cam.data[28+1] .. ", " .. v_cam.data[28+2] .. ", " .. v_cam.data[28+3] .. ", ")
   end
 
-  color(10)
+  color(7)
   pset(v_cam.data, 0, v_cam.length, 2, 4)
 
 end

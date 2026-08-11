@@ -8,8 +8,10 @@ SCREEN_HEIGHT = 270
 F = 2
 U_0 = SCREEN_WIDTH / 2
 V_0 = SCREEN_HEIGHT / 2
-ALPHA_U = F * U_0
-ALPHA_V = -F * V_0
+-- ALPHA_U = F * U_0
+-- ALPHA_V = -F * V_0
+ALPHA_U = 128
+ALPHA_V = 128
 -- focal length
 
 -- vertices
@@ -90,17 +92,18 @@ end
 function _update()
   if btn(0) then camera.x = camera.x - 0.1 end
   if btn(1) then camera.x = camera.x + 0.1 end
-  if btn(2) then camera.y = camera.y - 0.1 end
-  if btn(3) then camera.y = camera.y + 0.1 end
-  if btn(4) then camera.z = camera.z + 0.1 end
-  if btn(5) then camera.z = camera.z - 0.1 end
+  if btn(2) then camera.z = camera.z - 0.1 end
+  if btn(3) then camera.z = camera.z + 0.1 end
+  if btn(4) then camera.y = camera.y + 0.1 end
+  if btn(5) then camera.y = camera.y - 0.1 end
   
-  if btn(8) then camera.yaw = camera.yaw - 0.001 end
-  if btn(9) then camera.yaw = camera.yaw + 0.001 end
-  if btn(10) then camera.pitch = camera.pitch - 0.001 end
-  if btn(11) then camera.pitch = camera.pitch + 0.001 end
-  if btn(14) then camera.roll = camera.roll + 0.001 end
-  if btn(15) then camera.roll = camera.roll - 0.001 end
+  -- currently pitch and yaw have their names flipped, i think
+  if btn(8) then camera.pitch = camera.pitch - 0.001 end
+  if btn(9) then camera.pitch = camera.pitch + 0.001 end
+  if btn(10) then camera.yaw = camera.yaw + 0.001 end
+  if btn(11) then camera.yaw = camera.yaw - 0.001 end
+  if btn(14) then camera.roll = camera.roll - 0.001 end
+  if btn(15) then camera.roll = camera.roll + 0.001 end
 end
 
 function _draw()
@@ -108,9 +111,9 @@ function _draw()
   local b = camera.pitch
   local g = camera.roll
   world_to_cam:set(0, 0,
-    cos(b)*cos(g), -cos(b)*sin(g), sin(b), camera.x,
+    cos(b)*cos(g), -cos(b)*sin(g), sin(b), -camera.x, -- magic minus sign :O
     cos(a)*sin(g)+sin(a)*sin(b)*cos(g), cos(a)*cos(g)-sin(a)*sin(b)*sin(g), -sin(a)*cos(b), camera.y,
-    sin(a)*sin(g)-cos(a)*sin(b)*cos(g), sin(a)*cos(g)+cos(a)*sin(b)*sin(g), cos(a)*cos(b), camera.y,
+    sin(a)*sin(g)-cos(a)*sin(b)*cos(g), sin(a)*cos(g)+cos(a)*sin(b)*sin(g), cos(a)*cos(b), camera.z,
     0, 0, 0, 1
   )
   world_to_cam:transpose(true)

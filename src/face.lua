@@ -3,10 +3,14 @@ local V1_COL = 1
 local V2_COL = 2
 local V3_COL = 3
 local C_COL = 4
-local Z_COL = 5
-local TEMP_COL = 6
 
 local FACES_LEN = 7
+
+local SORT_IDX_COL = 0
+local SORT_Z_COL = 1
+local SORT_TEMP_COL = 2
+
+local SORT_LEN = 3
 local VERTICES_LEN = 4
 
 
@@ -34,6 +38,7 @@ end
 
 ---@class Faces
 ---@field data userdata
+---@field sort userdata
 ---@field length integer
 ---@field capacity integer
 local Faces = {}
@@ -46,6 +51,10 @@ function faces.new(capacity)
   local self = setmetatable({}, Faces)
 
   self.data = userdata("i32", FACES_LEN, capacity)
+  self.sort = userdata("f64", SORT_LEN, capacity)
+  for i = 0, capacity-1 do
+    self.sort:set(SORT_IDX_COL, i, i)
+  end
   self.length = 0
   self.capacity = capacity
 
@@ -89,21 +98,29 @@ end
 function Faces:draw_faces(draw_vertices)
   -- z-ordering
   -- todo: is sorting by centroid right?  may be a smarter way  
-  draw_vertices.data:take(self.data:mul(VERTICES_LEN):add(2), self.data, 0, TEMP_COL, 1, FACES_LEN, FACES_LEN, self.length)
-  self.data:copy(self.data, true, TEMP_COL, Z_COL, 1, FACES_LEN, FACES_LEN, self.length)
-  draw_vertices.data:take(self.data:mul(VERTICES_LEN):add(2), self.data, 1, TEMP_COL, 1, FACES_LEN, FACES_LEN, self.length)
-  self.data:add(self.data, true, TEMP_COL, Z_COL, 1, FACES_LEN, FACES_LEN, self.length)
-  draw_vertices.data:take(self.data:mul(VERTICES_LEN):add(2), self.data, 2, TEMP_COL, 1, FACES_LEN, FACES_LEN, self.length)
-  self.data:add(self.data, true, TEMP_COL, Z_COL, 1, FACES_LEN, FACES_LEN, self.length)
-  draw_vertices.data:take(self.data:mul(VERTICES_LEN):add(2), self.data, 3, TEMP_COL, 1, FACES_LEN, FACES_LEN, self.length)
-  self.data:add(self.data, true, TEMP_COL, Z_COL, 1, FACES_LEN, FACES_LEN, self.length)
-  self.data:mul(0.25, true, TEMP_COL, Z_COL, 1, FACES_LEN, FACES_LEN, self.length)
+  ud_util.debug(draw_vertices.data)
+  local z_idx = self.data:mul(VERTICES_LEN):add(2)
+  ud_util.debug(z_idx)
 
-  self.data:sort(Z_COL, true)
+  draw_vertices.data:take(z_idx, self.sort, 0, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
+  self.sort:copy(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
+  draw_vertices.data:take(z_idx, self.sort, 1, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
+  self.sort:add(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
+  draw_vertices.data:take(z_idx, self.sort, 2, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
+  self.sort:add(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
+  draw_vertices.data:take(z_idx, self.sort, 3, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
+  self.sort:add(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
+  self.sort:mul(0.25, true, SORT_Z_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
+
+  -- self.sort:sort(SORT_Z_COL, false)
+  self.data:sort(SORT_Z_COL, true)
+
+  ud_util.debug(self.sort)
 
   for i = 0, self.length-1 do
   -- for i = 0, 0 do
-    local v0, v1, v2, v3, c, z = self.data:get(0, i, 6)
+    local idx, z = self.sort:get(SORT_IDX_COL, i)
+    local v0, v1, v2, v3, c = self.data:get(0, idx, 6)
 
     -- if z < FOCAL_LENGTH then break end
 
@@ -125,6 +142,8 @@ function Faces:draw_faces(draw_vertices)
 
     local y_min = 1e9
     local y_min_i
+    local y_min_min_x = 1e9
+    local y_min_max_x = 1e9
     local y_max = -1e9
     local y_max_i
     
@@ -244,7 +263,6 @@ function Faces:draw_faces(draw_vertices)
     end
 
     print("rendered row:")
-    ud_util.debug(self.data, 1)
     print(points[0].x ..", ".. points[0].y)    
     print(points[1].x ..", ".. points[1].y)    
     print(points[2].x ..", ".. points[2].y)    

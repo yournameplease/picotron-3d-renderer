@@ -48,11 +48,9 @@ function _init()
   local j_hat = {x = 0, y = 1, z = 0}
   local k_hat = {x = 0, y = 0, z = 1}
 
-  local GRID_S = 4
+  local GRID_S = 5
   for l = 0, GRID_S-1 do
     for m = 0, GRID_S-1 do
-  -- for l = 0, 4 do
-  --   for m = 0, 4 do
       for i = 0, 1 do
         for j = 0, 1 do
           for k = 0, 1 do
@@ -66,12 +64,12 @@ function _init()
       end
 
       local offset = 8*(l*GRID_S+m)
-      add(cube_faces, {v1 = offset+0, v2 = offset+1, v0 = offset+2, v3 = offset+3, c = 8})
-      add(cube_faces, {v1 = offset+4, v2 = offset+5, v0 = offset+6, v3 = offset+7, c = 9})
-      add(cube_faces, {v1 = offset+0, v2 = offset+1, v0 = offset+4, v3 = offset+5, c = 10})
-      add(cube_faces, {v1 = offset+2, v2 = offset+3, v0 = offset+6, v3 = offset+7, c = 11})
-      add(cube_faces, {v1 = offset+0, v2 = offset+2, v0 = offset+4, v3 = offset+6, c = 12})
-      add(cube_faces, {v1 = offset+1, v2 = offset+3, v0 = offset+5, v3 = offset+7, c = 13})
+      add(cube_faces, {v0 = offset+0, v1 = offset+2, v2 = offset+3, v3 = offset+1, c = 8})
+      add(cube_faces, {v0 = offset+4, v1 = offset+5, v2 = offset+7, v3 = offset+6, c = 9})
+      add(cube_faces, {v0 = offset+0, v1 = offset+1, v2 = offset+5, v3 = offset+4, c = 10})
+      add(cube_faces, {v0 = offset+2, v1 = offset+6, v2 = offset+7, v3 = offset+3, c = 11})
+      add(cube_faces, {v0 = offset+0, v1 = offset+4, v2 = offset+6, v3 = offset+2, c = 12})
+      add(cube_faces, {v0 = offset+1, v1 = offset+3, v2 = offset+7, v3 = offset+5, c = 13})
     end
   end
 

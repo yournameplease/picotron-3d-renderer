@@ -34,27 +34,44 @@ local camera
 
 function _init()
   camera = {
-    x = 0, y = 0, z = 0,
-    pitch = 0, roll = 0, yaw = 0
+    x = -2, y = 4, z = 2,
+    -- pitch = 0, roll = 0, yaw = 0.25
+    pitch = 0.1, roll = 0.1, yaw = 0
   }
 
   
   local cube_vertices = {}
+  local cube_faces = {}
 
-  local o = {x = 0.2, y = 0.5, z = 5}
+  local o = {x = 0, y = 0, z = 5}
   local i_hat = {x = 1, y = 0, z = 0}
   local j_hat = {x = 0, y = 1, z = 0}
   local k_hat = {x = 0, y = 0, z = 1}
 
-  for i = 0, 1 do
-    for j = 0, 1 do
-      for k = 0, 1 do
-        add(cube_vertices, {
-          x = o.x + i * i_hat.x + j * j_hat.x + k * k_hat.x,
-          y = o.y + i * i_hat.y + j * j_hat.y + k * k_hat.y,
-          z = o.z + i * i_hat.z + j * j_hat.z + k * k_hat.z,
-        })
+  local GRID_S = 4
+  for l = 0, GRID_S-1 do
+    for m = 0, GRID_S-1 do
+  -- for l = 0, 4 do
+  --   for m = 0, 4 do
+      for i = 0, 1 do
+        for j = 0, 1 do
+          for k = 0, 1 do
+            add(cube_vertices, {
+              x = 3*l + o.x + i * i_hat.x + j * j_hat.x + k * k_hat.x,
+              y = o.y + i * i_hat.y + j * j_hat.y + k * k_hat.y,
+              z = 3*m + o.z + i * i_hat.z + j * j_hat.z + k * k_hat.z,
+            })
+          end
+        end
       end
+
+      local offset = 8*(l*GRID_S+m)
+      add(cube_faces, {v1 = offset+0, v2 = offset+1, v0 = offset+2, v3 = offset+3, c = 8})
+      add(cube_faces, {v1 = offset+4, v2 = offset+5, v0 = offset+6, v3 = offset+7, c = 9})
+      add(cube_faces, {v1 = offset+0, v2 = offset+1, v0 = offset+4, v3 = offset+5, c = 10})
+      add(cube_faces, {v1 = offset+2, v2 = offset+3, v0 = offset+6, v3 = offset+7, c = 11})
+      add(cube_faces, {v1 = offset+0, v2 = offset+2, v0 = offset+4, v3 = offset+6, c = 12})
+      add(cube_faces, {v1 = offset+1, v2 = offset+3, v0 = offset+5, v3 = offset+7, c = 13})
     end
   end
 
@@ -81,14 +98,7 @@ function _init()
   v_cam = vertices.of(cube_vertices)
 
 
-  f = faces.of({
-    {v1 = 0, v2 = 1, v0 = 2, v3 = 3, c = 8},
-    {v1 = 4, v2 = 5, v0 = 6, v3 = 7, c = 9},
-    {v1 = 0, v2 = 1, v0 = 4, v3 = 5, c = 10},
-    {v1 = 2, v2 = 3, v0 = 6, v3 = 7, c = 11},
-    {v1 = 0, v2 = 2, v0 = 4, v3 = 6, c = 12},
-    {v1 = 1, v2 = 3, v0 = 5, v3 = 7, c = 13},
-  })
+  f = faces.of(cube_faces)
 end
 
 
@@ -127,10 +137,6 @@ function _draw()
   -- DEBUG = true
   DEBUG = false
   
-  color(6)
-  print("CPU: " .. stat(1))
-  print("CAM: " .. camera.x .. "," .. camera.y .. "," .. camera.z)
-
   color(5)
   v:transform(v_proj.data, world_to_cam)
   if DEBUG then
@@ -160,13 +166,18 @@ function _draw()
   print(v_cam.data[28+0] .. ", " .. v_cam.data[28+1] .. ", " .. v_cam.data[28+2] .. ", " .. v_cam.data[28+3] .. ", ")
   end
 
-  f:draw_faces(v_cam)
+  local faces_drawn = f:draw_faces(v_cam)
 
   color(7)
-  f:draw_wireframes(v_cam, buf)
+  -- f:draw_wireframes(v_cam, buf)
   
   color(8)
-  pset(v_cam.data, 0, v_cam.length, 2, 4)
+  -- pset(v_cam.data, 0, v_cam.length, 2, 4)
 
+  print("CPU: " .. stat(1), 400, 3, 7)
+  color(6)
+  print("CAM: " .. camera.x .. "," .. camera.y .. "," .. camera.z)
+  print("VERTICES: " .. v.length)
+  print("FACES: " .. faces_drawn .."/".. f.length)
 end
 

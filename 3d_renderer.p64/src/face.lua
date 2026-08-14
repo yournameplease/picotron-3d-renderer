@@ -2,9 +2,12 @@ local V0_COL = 0
 local V1_COL = 1
 local V2_COL = 2
 local V3_COL = 3
-local C_COL = 4
+local NX_COL = 4
+local NY_COL = 5
+local NZ_COL = 6
+local C_COL = 7
 
-local FACES_LEN = 7
+local FACES_LEN = 8
 
 local SORT_IDX_COL = 0
 local SORT_Z_COL = 1
@@ -63,19 +66,44 @@ end
  
 ---@param vs Face[]
 ---@return Faces
-function faces.of(vs)
+---@param vertices Vertex[]
+function faces.of(vs, vertices)
   local self = faces.new(#vs)
   for _, v in ipairs(vs) do
-    self:add(v)
+    self:add(v, vertices)
   end
-  ud_util.debugh(self.data)
+  -- ud_util.debugh(self.data)
   return self
 end
 
 ---@param face Face
-function Faces:add(face)
+---@param vertices Vertex[]
+function Faces:add(face, vertices)
   assert(self.length < self.capacity)
-  self.data:set(V0_COL, self.length, face.v0, face.v1, face.v2, face.v3, face.c)
+
+  local p1 = {
+    x = vertices[1+face.v3].x-vertices[1+face.v0].x,
+    y = vertices[1+face.v3].y-vertices[1+face.v0].y,
+    z = vertices[1+face.v3].z-vertices[1+face.v0].z
+  }
+  local p2 = {
+    x = vertices[1+face.v1].x-vertices[1+face.v0].x,
+    y = vertices[1+face.v1].y-vertices[1+face.v0].y,
+    z = vertices[1+face.v1].z-vertices[1+face.v0].z
+  }
+  local n = {
+    x = p1.y * p2.z - p2.y * p1.z,
+    y = p1.x * p2.z - p2.x * p1.z,
+    z = p1.x * p2.y - p2.x * p1.y,
+  }
+  self.data:set(V0_COL, self.length, face.v0)
+  self.data:set(V1_COL, self.length, face.v1)
+  self.data:set(V2_COL, self.length, face.v2)
+  self.data:set(V3_COL, self.length, face.v3)
+  self.data:set(NX_COL, self.length, n.x)
+  self.data:set(NY_COL, self.length, n.y)
+  self.data:set(NZ_COL, self.length, n.z)
+  self.data:set(C_COL, self.length, face.c)
   self.length = self.length + 1
 end
 
@@ -95,7 +123,8 @@ function Faces:draw_wireframes(draw_vertices, buf)
 end
 
 ---@param draw_vertices Vertices
-function Faces:draw_faces(draw_vertices)
+---@param l Vertex vector, really
+function Faces:draw_faces(draw_vertices, l)
   -- z-ordering
   -- todo: is sorting by centroid right?  may be a smarter way  
   local z_idx = self.data:mul(VERTICES_LEN):add(2)
@@ -119,15 +148,14 @@ function Faces:draw_faces(draw_vertices)
   for i = 0, self.length-1 do
   -- for i = 0, 0 do
     local idx, z = self.sort:get(SORT_IDX_COL, i, 2)
-    local v0, v1, v2, v3, c = self.data:get(0, idx, 6)
+    local v0, v1, v2, v3, nx, ny, nz, c = self.data:get(0, idx, 8)
 
     if z < FOCAL_LENGTH then
       break
     else
 
       -- todo: only for drawn lines
-      lines_buffer:copy(-1)
-      lines_buffer:copy(c, true, L_C_COL, L_C_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
+      -- lines_buffer:copy(-1)
     
       local x0, y0, z0 = draw_vertices.data:get(0, v0, 3)
       local x1, y1, z1 = draw_vertices.data:get(0, v1, 3)
@@ -279,7 +307,63 @@ function Faces:draw_faces(draw_vertices)
         end
 
         local len = y_max - y_min
-        line(lines_buffer, L_LEN * y_min, len, 5, L_LEN)    
+
+        color(c)
+        line(lines_buffer, L_LEN * y_min, len, 4, L_LEN)    
+
+
+        do -- lighting
+          -- todo: i think the normals are in screen space rather than world space?
+          local nf = vector_normalize({x = nx, y = ny, z = nz})
+          -- printh("normal:"..nf.x .. "," .. nf.y .. "," .. nf.z)
+          -- printh("light:"..l.x .. "," .. l.y .. "," .. l.z)
+          n_dot_l = nf.x * l.x + nf.y * l.y + nf.z * l.z
+          -- printh("dot:"..n_dot_l)
+          local lighting_color_0 = 35
+          local lighting_color_1 = 35
+          if n_dot_l < 0.05 then
+            lighting_color_0 = 33
+          elseif n_dot_l < 0.2 then
+            lighting_color_0 = 34
+          elseif n_dot_l > 0.95 then
+            lighting_color_0 = 37
+          elseif n_dot_l < 0.8 then
+            lighting_color_0 = 36
+          end
+          if n_dot_l < 0.2 then
+            lighting_color_1 = 33
+          elseif n_dot_l < 0.3 then
+            lighting_color_1 = 34
+          elseif n_dot_l > 0.8 then
+            lighting_color_1 = 37
+          elseif n_dot_l < 0.7 then
+            lighting_color_1 = 36
+          end
+
+          local lighting_color = (lighting_color_1 << 8) + lighting_color_0 
+          -- if lighting_color ~= 35 then
+            fillp(0xA5A5)
+            -- poke(0x550b,0x3f)
+            -- fillp(
+            --   0xAA,
+            --   0x55,
+            --   0xAA,
+            --   0x55,
+            --   0xAA,
+            --   0x55,
+            --   0xAA,
+            --   0x55
+            -- )
+            color(lighting_color)
+            -- color(0x3334)
+            -- lighting_color = 0x0809
+            -- lighting_color = (08<<8) + 9
+            -- lines_buffer:copy(lighting_color, true, L_C_COL, L_C_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
+            line(lines_buffer, L_LEN * y_min, len, 4, L_LEN)
+            fillp()
+          -- end
+        end
+       
         drawn = drawn + 1
       end
     end

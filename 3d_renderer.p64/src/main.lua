@@ -1,6 +1,7 @@
 
 SCREEN_WIDTH = 480
 SCREEN_HEIGHT = 270
+EPSILON = 0.0001
 
 -- half screen vectors
 FOCAL_LENGTH = 2
@@ -28,9 +29,32 @@ local world_to_cam
 local cam_to_screen
 local v_proj
 local v_cam
-
+-- todo: convert to userdata
+local light = {x = 1, y = -2, z = -3}
+local t = 0
 
 local camera
+
+function apply_color_table(color_table_sprite)
+	local sprite=get_spr(color_table_sprite)
+	--copy the sprite into the address 0x8000 in memory
+	memmap(sprite,0x8000)
+	--poke the bit that makes it work for shapes(circ,rect etc.), the bit for sprites
+	--is already set by default.
+	poke(0x550b,0x3f)
+	--the color table got copied and will be used. This is the same color table 
+	--that pal() modifies.
+end
+
+---@param vec Vertex
+---@return Vertex
+function vector_normalize(vec)
+  local mag = (vec.x * vec.x + vec.y * vec.y + vec.z * vec.z) ^ 0.5
+  if mag < EPSILON then
+    return {x = 0, y = 0, z = 0}
+  end
+  return {x = vec.x / mag, y = vec.y / mag, z = vec.z / mag}
+end
 
 function _init()
   camera = {
@@ -48,7 +72,7 @@ function _init()
   local j_hat = {x = 0, y = 1, z = 0}
   local k_hat = {x = 0, y = 0, z = 1}
 
-  local GRID_S = 5
+  local GRID_S = 6
   for l = 0, GRID_S-1 do
     for m = 0, GRID_S-1 do
       for i = 0, 1 do
@@ -64,12 +88,13 @@ function _init()
       end
 
       local offset = 8*(l*GRID_S+m)
-      add(cube_faces, {v0 = offset+0, v1 = offset+2, v2 = offset+3, v3 = offset+1, c = 8})
-      add(cube_faces, {v0 = offset+4, v1 = offset+5, v2 = offset+7, v3 = offset+6, c = 9})
-      add(cube_faces, {v0 = offset+0, v1 = offset+1, v2 = offset+5, v3 = offset+4, c = 10})
-      add(cube_faces, {v0 = offset+2, v1 = offset+6, v2 = offset+7, v3 = offset+3, c = 11})
-      add(cube_faces, {v0 = offset+0, v1 = offset+4, v2 = offset+6, v3 = offset+2, c = 12})
-      add(cube_faces, {v0 = offset+1, v1 = offset+3, v2 = offset+7, v3 = offset+5, c = 13})
+      local c = (l*GRID_S+m)%7+8
+      add(cube_faces, {v0 = offset+0, v1 = offset+2, v2 = offset+3, v3 = offset+1, c = c}) -- 8})
+      add(cube_faces, {v0 = offset+4, v1 = offset+5, v2 = offset+7, v3 = offset+6, c = c}) -- 9})
+      add(cube_faces, {v0 = offset+0, v1 = offset+1, v2 = offset+5, v3 = offset+4, c = c}) -- 10})
+      add(cube_faces, {v0 = offset+2, v1 = offset+6, v2 = offset+7, v3 = offset+3, c = c}) -- 11})
+      add(cube_faces, {v0 = offset+0, v1 = offset+4, v2 = offset+6, v3 = offset+2, c = c}) -- 12})
+      add(cube_faces, {v0 = offset+1, v1 = offset+3, v2 = offset+7, v3 = offset+5, c = c}) -- 13})
     end
   end
 
@@ -96,12 +121,19 @@ function _init()
   v_cam = vertices.of(cube_vertices)
 
 
-  f = faces.of(cube_faces)
+  light = vector_normalize(light)
+  printh(light.x .. light.y .. light.z)
+
+  f = faces.of(cube_faces, cube_vertices)
+
+  apply_color_table(8)
 end
 
 
 
 function _update()
+  t = t + 1/60
+  
   if btn(0) then camera.x = camera.x - 0.1 end
   if btn(1) then camera.x = camera.x + 0.1 end
   if btn(2) then camera.z = camera.z - 0.1 end
@@ -119,6 +151,13 @@ function _update()
 end
 
 function _draw()
+  light = vector_normalize({
+    x = cos(t / 20),
+    y = -2,
+    z = sin(0.2 + t / 20)
+  })
+
+  
   local a = camera.yaw
   local b = camera.pitch
   local g = camera.roll
@@ -164,7 +203,7 @@ function _draw()
   print(v_cam.data[28+0] .. ", " .. v_cam.data[28+1] .. ", " .. v_cam.data[28+2] .. ", " .. v_cam.data[28+3] .. ", ")
   end
 
-  local faces_drawn = f:draw_faces(v_cam)
+  local faces_drawn = f:draw_faces(v_cam, light)
 
   color(7)
   -- f:draw_wireframes(v_cam, buf)

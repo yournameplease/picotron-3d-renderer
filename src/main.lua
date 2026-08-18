@@ -73,6 +73,8 @@ function _init()
   local k_hat = {x = 0, y = 0, z = 1}
 
   local GRID_S = 6
+  -- local GRID_S = 2
+  
   for l = 0, GRID_S-1 do
     for m = 0, GRID_S-1 do
       for i = 0, 1 do
@@ -89,12 +91,56 @@ function _init()
 
       local offset = 8*(l*GRID_S+m)
       local c = (l*GRID_S+m)%7+8
-      add(cube_faces, {v0 = offset+0, v1 = offset+2, v2 = offset+3, v3 = offset+1, c = c}) -- 8})
-      add(cube_faces, {v0 = offset+4, v1 = offset+5, v2 = offset+7, v3 = offset+6, c = c}) -- 9})
-      add(cube_faces, {v0 = offset+0, v1 = offset+1, v2 = offset+5, v3 = offset+4, c = c}) -- 10})
-      add(cube_faces, {v0 = offset+2, v1 = offset+6, v2 = offset+7, v3 = offset+3, c = c}) -- 11})
-      add(cube_faces, {v0 = offset+0, v1 = offset+4, v2 = offset+6, v3 = offset+2, c = c}) -- 12})
-      add(cube_faces, {v0 = offset+1, v1 = offset+3, v2 = offset+7, v3 = offset+5, c = c}) -- 13})
+      local s = (l*GRID_S+m)%4+1
+      
+      add(cube_faces, {
+        s = s,
+        v0 = offset+0, v0_u = 0, v0_v = 0,
+        v1 = offset+2, v1_u = 15, v1_v = 0,
+        v2 = offset+3, v2_u = 15, v2_v = 15,
+        v3 = offset+1, v3_u = 0, v3_v = 15,
+        c = c
+      }) -- 8})
+      add(cube_faces, {
+        s = s,
+        v0 = offset+4, v0_u = 0, v0_v = 0,
+        v1 = offset+5, v1_u = 15, v1_v = 0,
+        v2 = offset+7, v2_u = 15, v2_v = 15,
+        v3 = offset+6, v3_u = 0, v3_v = 15,
+        c = c
+      }) -- 9})
+      add(cube_faces, {
+        s = s,
+        v0 = offset+0, v0_u = 0, v0_v = 0,
+        v1 = offset+1, v1_u = 15, v1_v = 0,
+        v2 = offset+5, v2_u = 15, v2_v = 15,
+        v3 = offset+4, v3_u = 0, v3_v = 15,
+        c = c
+      }) -- 10})
+      add(cube_faces, {
+        s = s,
+        v0 = offset+2, v0_u = 0, v0_v = 0,
+        v1 = offset+6, v1_u = 15, v1_v = 0,
+        v2 = offset+7, v2_u = 15, v2_v = 15,
+        v3 = offset+3, v3_u = 0, v3_v = 15,
+        c = c
+      }) -- 11})
+      add(cube_faces, {
+        s = s,
+        v0 = offset+0, v0_u = 0, v0_v = 0,
+        v1 = offset+4, v1_u = 15, v1_v = 0,
+        v2 = offset+6, v2_u = 15, v2_v = 15,
+        v3 = offset+2, v3_u = 0, v3_v = 15,
+        c = c
+      }) -- 12})
+      add(cube_faces, {
+        s = s,
+        v0 = offset+1, v0_u = 0, v0_v = 0,
+        v1 = offset+3, v1_u = 15, v1_v = 0,
+        v2 = offset+7, v2_u = 15, v2_v = 15,
+        v3 = offset+5, v3_u = 0, v3_v = 15,
+        c = c
+      }) -- 13})
     end
   end
 
@@ -127,11 +173,14 @@ function _init()
   f = faces.of(cube_faces, cube_vertices)
 
   apply_color_table(8)
+
+  profile.enabled(true, true)
 end
 
 
 
 function _update()
+  profile("update")
   t = t + 1/60
   
   if btn(0) then camera.x = camera.x - 0.1 end
@@ -148,9 +197,11 @@ function _update()
   if btn(11) then camera.yaw = camera.yaw - 0.001 end
   if btn(14) then camera.roll = camera.roll - 0.001 end
   if btn(15) then camera.roll = camera.roll + 0.001 end
+  profile("update")
 end
 
 function _draw()
+  profile("draw_setup")
   light = vector_normalize({
     x = cos(t / 20),
     y = -2,
@@ -174,6 +225,8 @@ function _draw()
   -- DEBUG = true
   DEBUG = false
   
+  profile("draw_setup")
+  profile("transform_vertices")
   color(5)
   v:transform(v_proj.data, world_to_cam)
   if DEBUG then
@@ -202,13 +255,16 @@ function _draw()
   print(v_cam.data[24+0] .. ", " .. v_cam.data[24+1] .. ", " .. v_cam.data[24+2] .. ", " .. v_cam.data[24+3] .. ", ")
   print(v_cam.data[28+0] .. ", " .. v_cam.data[28+1] .. ", " .. v_cam.data[28+2] .. ", " .. v_cam.data[28+3] .. ", ")
   end
+  profile("transform_vertices")
 
+  profile("draw_faces")
   local faces_drawn = f:draw_faces(v_cam, light)
+  profile("draw_faces")
 
-  color(7)
+  -- color(7)
   -- f:draw_wireframes(v_cam, buf)
   
-  color(8)
+  -- color(8)
   -- pset(v_cam.data, 0, v_cam.length, 2, 4)
 
   print("CPU: " .. stat(1), 400, 3, 7)
@@ -216,5 +272,8 @@ function _draw()
   print("CAM: " .. camera.x .. "," .. camera.y .. "," .. camera.z)
   print("VERTICES: " .. v.length)
   print("FACES: " .. faces_drawn .."/".. f.length)
+
+  color(6)
+  profile.draw()
 end
 

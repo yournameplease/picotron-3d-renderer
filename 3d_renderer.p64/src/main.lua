@@ -72,7 +72,9 @@ function _init()
   local j_hat = {x = 0, y = 1, z = 0}
   local k_hat = {x = 0, y = 0, z = 1}
 
-  local GRID_S = 6
+  -- local GRID_S = 6
+  local GRID_S = 2
+  
   for l = 0, GRID_S-1 do
     for m = 0, GRID_S-1 do
       for i = 0, 1 do
@@ -89,12 +91,54 @@ function _init()
 
       local offset = 8*(l*GRID_S+m)
       local c = (l*GRID_S+m)%7+8
-      add(cube_faces, {v0 = offset+0, v1 = offset+2, v2 = offset+3, v3 = offset+1, c = c}) -- 8})
-      add(cube_faces, {v0 = offset+4, v1 = offset+5, v2 = offset+7, v3 = offset+6, c = c}) -- 9})
-      add(cube_faces, {v0 = offset+0, v1 = offset+1, v2 = offset+5, v3 = offset+4, c = c}) -- 10})
-      add(cube_faces, {v0 = offset+2, v1 = offset+6, v2 = offset+7, v3 = offset+3, c = c}) -- 11})
-      add(cube_faces, {v0 = offset+0, v1 = offset+4, v2 = offset+6, v3 = offset+2, c = c}) -- 12})
-      add(cube_faces, {v0 = offset+1, v1 = offset+3, v2 = offset+7, v3 = offset+5, c = c}) -- 13})
+      add(cube_faces, {
+        s = 1,
+        v0 = offset+0, v0_u = 0, v0_v = 0,
+        v1 = offset+2, v1_u = 15, v1_v = 0,
+        v2 = offset+3, v2_u = 15, v2_v = 15,
+        v3 = offset+1, v3_u = 0, v3_v = 15,
+        c = c
+      }) -- 8})
+      add(cube_faces, {
+        s = 2,
+        v0 = offset+4, v0_u = 0, v0_v = 0,
+        v1 = offset+5, v1_u = 15, v1_v = 0,
+        v2 = offset+7, v2_u = 15, v2_v = 15,
+        v3 = offset+6, v3_u = 0, v3_v = 15,
+        c = c
+      }) -- 9})
+      add(cube_faces, {
+        s = 3,
+        v0 = offset+0, v0_u = 0, v0_v = 0,
+        v1 = offset+1, v1_u = 15, v1_v = 0,
+        v2 = offset+5, v2_u = 15, v2_v = 15,
+        v3 = offset+4, v3_u = 0, v3_v = 15,
+        c = c
+      }) -- 10})
+      add(cube_faces, {
+        s = 4,
+        v0 = offset+2, v0_u = 0, v0_v = 0,
+        v1 = offset+6, v1_u = 15, v1_v = 0,
+        v2 = offset+7, v2_u = 15, v2_v = 15,
+        v3 = offset+3, v3_u = 0, v3_v = 15,
+        c = c
+      }) -- 11})
+      add(cube_faces, {
+        s = 2,
+        v0 = offset+0, v0_u = 0, v0_v = 0,
+        v1 = offset+4, v1_u = 15, v1_v = 0,
+        v2 = offset+6, v2_u = 15, v2_v = 15,
+        v3 = offset+2, v3_u = 0, v3_v = 15,
+        c = c
+      }) -- 12})
+      add(cube_faces, {
+        s = 2,
+        v0 = offset+1, v0_u = 0, v0_v = 0,
+        v1 = offset+3, v1_u = 15, v1_v = 0,
+        v2 = offset+7, v2_u = 15, v2_v = 15,
+        v3 = offset+5, v3_u = 0, v3_v = 15,
+        c = c
+      }) -- 13})
     end
   end
 

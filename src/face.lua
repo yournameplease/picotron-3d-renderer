@@ -5,9 +5,18 @@ local V3_COL = 3
 local NX_COL = 4
 local NY_COL = 5
 local NZ_COL = 6
-local C_COL = 7
+local V0_U_COL = 7
+local V0_V_COL = 8
+local V1_U_COL = 9
+local V1_V_COL = 10
+local V2_U_COL = 11
+local V2_V_COL = 12
+local V3_U_COL = 13
+local V3_V_COL = 14
+local S_COL = 15
+local C_COL = 16
 
-local FACES_LEN = 8
+local FACES_LEN = 17
 
 local SORT_IDX_COL = 0
 local SORT_Z_COL = 1
@@ -17,12 +26,17 @@ local SORT_LEN = 3
 local VERTICES_LEN = 4
 
 
-local L_X0_COL = 0
-local L_Y0_COL = 1
-local L_X1_COL = 2
-local L_Y1_COL = 3
-local L_C_COL = 4
-local L_LEN = 5
+local L_S_COL = 0
+local L_X0_COL = 1
+local L_Y0_COL = 2
+local L_X1_COL = 3
+local L_Y1_COL = 4
+local L_U0_COL = 5
+local L_V0_COL = 6
+local L_U1_COL = 7
+local L_V1_COL = 8
+-- local L_C_COL = 4
+local L_LEN = 9
 
 local ud_util = require("src.userdata")
 
@@ -37,6 +51,15 @@ end
 ---@field v1 integer
 ---@field v2 integer
 ---@field v3 integer
+---@field v0_u number
+---@field v0_v number
+---@field v1_u number
+---@field v1_v number
+---@field v2_u number
+---@field v2_v number
+---@field v3_u number
+---@field v3_v number
+---@field s integer
 ---@field c integer
 
 ---@class Faces
@@ -103,6 +126,15 @@ function Faces:add(face, vertices)
   self.data:set(NX_COL, self.length, n.x)
   self.data:set(NY_COL, self.length, n.y)
   self.data:set(NZ_COL, self.length, n.z)
+  self.data:set(V0_U_COL, self.length, face.v0_u)
+  self.data:set(V0_V_COL, self.length, face.v0_v)
+  self.data:set(V1_U_COL, self.length, face.v1_u)
+  self.data:set(V1_V_COL, self.length, face.v1_v)
+  self.data:set(V2_U_COL, self.length, face.v2_u)
+  self.data:set(V2_V_COL, self.length, face.v2_v)
+  self.data:set(V3_U_COL, self.length, face.v3_u)
+  self.data:set(V3_V_COL, self.length, face.v3_v)
+  self.data:set(S_COL, self.length, face.s)
   self.data:set(C_COL, self.length, face.c)
   self.length = self.length + 1
 end
@@ -127,6 +159,7 @@ end
 function Faces:draw_faces(draw_vertices, l)
   -- z-ordering
   -- todo: is sorting by centroid right?  may be a smarter way  
+  profile("face_setup")
   local z_idx = self.data:mul(VERTICES_LEN):add(2)
 
   draw_vertices.data:take(z_idx, self.sort, 0, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
@@ -141,14 +174,23 @@ function Faces:draw_faces(draw_vertices, l)
 
   -- self.sort:sort(SORT_Z_COL, false)
   self.data:sort(SORT_Z_COL, true)
+  profile("face_setup")
 
   -- ud_util.debug(self.sort)
 
   local drawn = 0
   for i = 0, self.length-1 do
   -- for i = 0, 0 do
+    profile("face_quad_setup")
     local idx, z = self.sort:get(SORT_IDX_COL, i, 2)
-    local v0, v1, v2, v3, nx, ny, nz, c = self.data:get(0, idx, 8)
+    local v0, v1, v2, v3,
+      nx, ny, nz,
+      v0_u, v0_v,
+      v1_u, v1_v,
+      v2_u, v2_v,
+      v3_u, v3_v,
+      s
+      = self.data:get(0, idx, 16)
 
     if z < FOCAL_LENGTH then
       break
@@ -179,10 +221,10 @@ function Faces:draw_faces(draw_vertices, l)
       else
 
         local points = {
-          [0] = {x = x0, y = y0},
-          [1] = {x = x1, y = y1},
-          [2] = {x = x2, y = y2},
-          [3] = {x = x3, y = y3},
+          [0] = {x = x0, y = y0, u = v0_u, v = v0_v},
+          [1] = {x = x1, y = y1, u = v1_u, v = v1_v},
+          [2] = {x = x2, y = y2, u = v2_u, v = v2_v},
+          [3] = {x = x3, y = y3, u = v3_u, v = v3_v},
         }
 
         local y_min = 1e9
@@ -219,21 +261,28 @@ function Faces:draw_faces(draw_vertices, l)
             local q = points[i_prev]
             local x_int = (q.x - p.x) * (0 - p.y) / (q.y - p.y) + p.x
             lines_buffer:set(L_X0_COL, 0, x_int)
+            -- todo)) lerp uv
           end
           do
             local q = points[i_next]
             local x_int = (q.x - p.x) * (0 - p.y) / (q.y - p.y) + p.x
             lines_buffer:set(L_X1_COL, 0, x_int)
+            -- todo)) lerp uv
           end
 
           left_y = 0
           right_y = 0
         else
           local p = points[y_min_i]
-          lines_buffer:set(L_X0_COL, flr(y_min), p.x)
-          lines_buffer:set(L_X1_COL, flr(y_min), p.x)
           left_y = flr(y_min)
           right_y = flr(y_min)
+
+          lines_buffer:set(L_X0_COL, left_y, p.x)
+          lines_buffer:set(L_X1_COL, right_y, p.x)
+          lines_buffer:set(L_U0_COL, left_y, p.u)
+          lines_buffer:set(L_V0_COL, left_y, p.v)
+          lines_buffer:set(L_U1_COL, right_y, p.u)
+          lines_buffer:set(L_V1_COL, right_y, p.v)
         end
 
         if y_max > SCREEN_HEIGHT - 1  then
@@ -246,21 +295,28 @@ function Faces:draw_faces(draw_vertices, l)
             local q = points[i_prev]
             local x_int = (q.x - p.x) * (SCREEN_HEIGHT - 1 - p.y) / (q.y - p.y) + p.x
             lines_buffer:set(L_X0_COL, SCREEN_HEIGHT - 1, x_int)
+            -- todo)) lerp uv
           end
           do
             local q = points[i_next]
             local x_int = (q.x - p.x) * (SCREEN_HEIGHT - 1 - p.y) / (q.y - p.y) + p.x
             lines_buffer:set(L_X1_COL, SCREEN_HEIGHT - 1, x_int)
+            -- todo)) lerp uv
           end
 
-          left_y_final = 0
-          right_y_final = 0
+          left_y_final = SCREEN_HEIGHT - 1
+          right_y_final = SCREEN_HEIGHT - 1
         else
           local p = points[y_max_i]
-          lines_buffer:set(L_X0_COL, flr(y_max), p.x)
-          lines_buffer:set(L_X1_COL, flr(y_max), p.x)
           left_y_final = flr(y_max)
           right_y_final = flr(y_max)
+
+          lines_buffer:set(L_X0_COL, left_y_final, p.x)
+          lines_buffer:set(L_X1_COL, right_y_final, p.x)
+          lines_buffer:set(L_U0_COL, left_y_final, p.u)
+          lines_buffer:set(L_V0_COL, left_y_final, p.v)
+          lines_buffer:set(L_U1_COL, right_y_final, p.u)
+          lines_buffer:set(L_V1_COL, right_y_final, p.v)
         end
 
         y_min = flr(y_min)
@@ -275,12 +331,18 @@ function Faces:draw_faces(draw_vertices, l)
             if j == y_max_i then
               local len = left_y_final - left_y
               lines_buffer:lerp(left_y * L_LEN + L_X0_COL, len, L_LEN, 1)
+              lines_buffer:lerp(left_y * L_LEN + L_U0_COL, len, L_LEN, 1)
+              lines_buffer:lerp(left_y * L_LEN + L_V0_COL, len, L_LEN, 1)
               break
             else
               local left_y_next = flr(points[j].y)
               local len = left_y_next - left_y
               lines_buffer:set(L_X0_COL, left_y_next, points[j].x)
+              lines_buffer:set(L_U0_COL, left_y_next, points[j].u)
+              lines_buffer:set(L_V0_COL, left_y_next, points[j].v)
               lines_buffer:lerp(left_y * L_LEN + L_X0_COL, len, L_LEN, 1)
+              lines_buffer:lerp(left_y * L_LEN + L_U0_COL, len, L_LEN, 1)
+              lines_buffer:lerp(left_y * L_LEN + L_V0_COL, len, L_LEN, 1)
               left_y = left_y_next
             end
           end
@@ -295,29 +357,42 @@ function Faces:draw_faces(draw_vertices, l)
             if j == y_max_i then
               local len = right_y_final - right_y
               lines_buffer:lerp(right_y * L_LEN + L_X1_COL, len, L_LEN, 1)
+              lines_buffer:lerp(right_y * L_LEN + L_U1_COL, len, L_LEN, 1)
+              lines_buffer:lerp(right_y * L_LEN + L_V1_COL, len, L_LEN, 1)
               break
             else
               local right_y_next = flr(points[j].y)
               local len = right_y_next - right_y
               lines_buffer:set(L_X1_COL, right_y_next, points[j].x)
+              lines_buffer:set(L_U1_COL, right_y_next, points[j].u)
+              lines_buffer:set(L_V1_COL, right_y_next, points[j].v)
               lines_buffer:lerp(right_y * L_LEN + L_X1_COL, len, L_LEN, 1)
+              lines_buffer:lerp(right_y * L_LEN + L_U1_COL, len, L_LEN, 1)
+              lines_buffer:lerp(right_y * L_LEN + L_V1_COL, len, L_LEN, 1)
               right_y = right_y_next
             end
           end
         end
 
         local len = y_max - y_min
+      profile("face_quad_setup")
 
-        color(c)
-        line(lines_buffer, L_LEN * y_min, len, 4, L_LEN)    
+        -- color(c)
+        profile("face_texture")
+        lines_buffer:copy(s, true, L_S_COL, L_S_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
+        tline3d(lines_buffer, L_LEN * y_min, len, 9, L_LEN)    
+        profile("face_texture")
 
 
+        profile("face_lighting")
         do -- lighting
-          -- todo: i think the normals are in screen space rather than world space?
           local nf = vector_normalize({x = nx, y = ny, z = nz})
-          -- printh("normal:"..nf.x .. "," .. nf.y .. "," .. nf.z)
-          -- printh("light:"..l.x .. "," .. l.y .. "," .. l.z)
           n_dot_l = nf.x * l.x + nf.y * l.y + nf.z * l.z
+
+          -- ambient = 0.1
+          -- 0.1 reserved for specular, if I get to it...
+          n_dot_l = n_dot_l * 0.8 + 0.1
+          
           -- printh("dot:"..n_dot_l)
           local lighting_color_0 = 35
           local lighting_color_1 = 35
@@ -327,16 +402,16 @@ function Faces:draw_faces(draw_vertices, l)
             lighting_color_0 = 34
           elseif n_dot_l > 0.95 then
             lighting_color_0 = 37
-          elseif n_dot_l < 0.8 then
+          elseif n_dot_l > 0.9 then
             lighting_color_0 = 36
           end
           if n_dot_l < 0.2 then
             lighting_color_1 = 33
           elseif n_dot_l < 0.3 then
             lighting_color_1 = 34
-          elseif n_dot_l > 0.8 then
+          elseif n_dot_l > 0.9 then
             lighting_color_1 = 37
-          elseif n_dot_l < 0.7 then
+          elseif n_dot_l > 0.85 then
             lighting_color_1 = 36
           end
 
@@ -359,10 +434,11 @@ function Faces:draw_faces(draw_vertices, l)
             -- lighting_color = 0x0809
             -- lighting_color = (08<<8) + 9
             -- lines_buffer:copy(lighting_color, true, L_C_COL, L_C_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
-            line(lines_buffer, L_LEN * y_min, len, 4, L_LEN)
+            line(lines_buffer, L_X0_COL + L_LEN * y_min, len, 4, L_LEN)
             fillp()
           -- end
         end
+        profile("face_lighting")
        
         drawn = drawn + 1
       end

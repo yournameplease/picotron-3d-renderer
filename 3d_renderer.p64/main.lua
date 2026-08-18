@@ -1,4 +1,3 @@
--- asteroids-metroidvania: minimal Picotron game showing crane library use.
 
 local _modules = {}
 
@@ -17,5 +16,7 @@ cp("/desktop/projects/3d-renderer/src", "src")
 cp("/desktop/projects/3d-renderer/lib", "lib")
 
 include "src/main.lua"
+
+include "lib/profiler.lua"
 
 include "lib/error_explorer.lua"

@@ -96,49 +96,49 @@ function _init()
       add(cube_faces, {
         s = s,
         v0 = offset+0, v0_u = 0, v0_v = 0,
-        v1 = offset+2, v1_u = 15, v1_v = 0,
-        v2 = offset+3, v2_u = 15, v2_v = 15,
-        v3 = offset+1, v3_u = 0, v3_v = 15,
+        v1 = offset+2, v1_u = 16, v1_v = 0,
+        v2 = offset+3, v2_u = 16, v2_v = 16,
+        v3 = offset+1, v3_u = 0, v3_v = 16,
         c = c
       }) -- 8})
       add(cube_faces, {
         s = s,
         v0 = offset+4, v0_u = 0, v0_v = 0,
-        v1 = offset+5, v1_u = 15, v1_v = 0,
-        v2 = offset+7, v2_u = 15, v2_v = 15,
-        v3 = offset+6, v3_u = 0, v3_v = 15,
+        v1 = offset+5, v1_u = 16, v1_v = 0,
+        v2 = offset+7, v2_u = 16, v2_v = 16,
+        v3 = offset+6, v3_u = 0, v3_v = 16,
         c = c
       }) -- 9})
       add(cube_faces, {
         s = s,
         v0 = offset+0, v0_u = 0, v0_v = 0,
-        v1 = offset+1, v1_u = 15, v1_v = 0,
-        v2 = offset+5, v2_u = 15, v2_v = 15,
-        v3 = offset+4, v3_u = 0, v3_v = 15,
+        v1 = offset+1, v1_u = 16, v1_v = 0,
+        v2 = offset+5, v2_u = 16, v2_v = 16,
+        v3 = offset+4, v3_u = 0, v3_v = 16,
         c = c
       }) -- 10})
       add(cube_faces, {
         s = s,
         v0 = offset+2, v0_u = 0, v0_v = 0,
-        v1 = offset+6, v1_u = 15, v1_v = 0,
-        v2 = offset+7, v2_u = 15, v2_v = 15,
-        v3 = offset+3, v3_u = 0, v3_v = 15,
+        v1 = offset+6, v1_u = 16, v1_v = 0,
+        v2 = offset+7, v2_u = 16, v2_v = 16,
+        v3 = offset+3, v3_u = 0, v3_v = 16,
         c = c
       }) -- 11})
       add(cube_faces, {
         s = s,
         v0 = offset+0, v0_u = 0, v0_v = 0,
-        v1 = offset+4, v1_u = 15, v1_v = 0,
-        v2 = offset+6, v2_u = 15, v2_v = 15,
-        v3 = offset+2, v3_u = 0, v3_v = 15,
+        v1 = offset+4, v1_u = 16, v1_v = 0,
+        v2 = offset+6, v2_u = 16, v2_v = 16,
+        v3 = offset+2, v3_u = 0, v3_v = 16,
         c = c
       }) -- 12})
       add(cube_faces, {
         s = s,
         v0 = offset+1, v0_u = 0, v0_v = 0,
-        v1 = offset+3, v1_u = 15, v1_v = 0,
-        v2 = offset+7, v2_u = 15, v2_v = 15,
-        v3 = offset+5, v3_u = 0, v3_v = 15,
+        v1 = offset+3, v1_u = 16, v1_v = 0,
+        v2 = offset+7, v2_u = 16, v2_v = 16,
+        v3 = offset+5, v3_u = 0, v3_v = 16,
         c = c
       }) -- 13})
     end
@@ -157,7 +157,7 @@ function _init()
     ALPHA_U, 0, U_0, 0,
     0, ALPHA_V, V_0, 0,
     0, 0, 1, 0,
-    0, 0, 0, 0
+    0, 0, 0, 1
   )
   cam_to_screen:transpose(true)
 
@@ -213,9 +213,9 @@ function _draw()
   local b = camera.pitch
   local g = camera.roll
   world_to_cam:set(0, 0,
-    cos(b)*cos(g), -cos(b)*sin(g), sin(b), -camera.x, -- magic minus sign :O
-    cos(a)*sin(g)+sin(a)*sin(b)*cos(g), cos(a)*cos(g)-sin(a)*sin(b)*sin(g), -sin(a)*cos(b), camera.y,
-    sin(a)*sin(g)-cos(a)*sin(b)*cos(g), sin(a)*cos(g)+cos(a)*sin(b)*sin(g), cos(a)*cos(b), camera.z,
+    math.cos(b)*math.cos(g), -math.cos(b)*math.sin(g), math.sin(b), -camera.x, -- magic minus sign :O
+    math.cos(a)*math.sin(g)+math.sin(a)*math.sin(b)*math.cos(g), math.cos(a)*math.cos(g)-math.sin(a)*math.sin(b)*math.sin(g), -math.sin(a)*math.cos(b), camera.y,
+    math.sin(a)*math.sin(g)-math.cos(a)*math.sin(b)*math.cos(g), math.sin(a)*math.cos(g)+math.cos(a)*math.sin(b)*math.sin(g), math.cos(a)*math.cos(b), camera.z,
     0, 0, 0, 1
   )
   world_to_cam:transpose(true)
@@ -242,8 +242,11 @@ function _draw()
   end
 
   v_proj:transform(v_cam.data, cam_to_screen)
-  v_cam.data:div(v_cam.data, true, 2, 0, 1, 4, 4, v_proj.length)
-  v_cam.data:div(v_cam.data, true, 2, 1, 1, 4, 4, v_proj.length)
+  v_cam.data.div(1, v_cam.data, v_cam.data, 2, 2, 1, 4, 4, v_proj.length)
+  -- v_cam.data:div(v_cam.data, true, 3, 2, 1, 4, 4, v_proj.length)
+  v_cam.data:mul(v_cam.data, true, 2, 0, 1, 4, 4, v_proj.length)
+  v_cam.data:mul(v_cam.data, true, 2, 1, 1, 4, 4, v_proj.length)
+
   if DEBUG then
   print(v_cam.length .. ", " .. v_cam.capacity)
   print(v_cam.data[0] .. ", " .. v_cam.data[1] .. ", " .. v_cam.data[2] .. ", " .. v_cam.data[3] .. ", ")

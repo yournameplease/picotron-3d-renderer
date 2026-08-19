@@ -35,16 +35,23 @@ local L_U0_COL = 5
 local L_V0_COL = 6
 local L_U1_COL = 7
 local L_V1_COL = 8
+local L_W0_COL = 9
+local L_W1_COL = 10
+local L_FLAGS_COL = 11
 -- local L_C_COL = 4
-local L_LEN = 9
+local L_LEN = 12
 
 local ud_util = require("src.userdata")
+
+-- local TLINE_FLAGS = 0x300
+local TLINE_FLAGS = 0x000
 
 local lines_buffer = userdata("f64", L_LEN, SCREEN_HEIGHT)
 for i = 0, SCREEN_HEIGHT - 1 do
   lines_buffer:set(L_Y0_COL, i, i)
   lines_buffer:set(L_Y1_COL, i, i)
 end
+lines_buffer:copy(TLINE_FLAGS, true, L_FLAGS_COL, L_FLAGS_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
 
 ---@class Face
 ---@field v0 integer
@@ -192,7 +199,7 @@ function Faces:draw_faces(draw_vertices, l)
       s
       = self.data:get(0, idx, 16)
 
-    if z < FOCAL_LENGTH then
+    if z > 1/FOCAL_LENGTH then
       break
     else
 
@@ -207,8 +214,8 @@ function Faces:draw_faces(draw_vertices, l)
       -- backface culling
       -- assume coplanar points
       -- take vector perpindicular to the plane formed by v0->v3, v0->v1 as the normal
-      local p1 = {x = x3-x0, y = y3-y0, z = z3-z0}
-      local p2 = {x = x1-x0, y = y1-y0, z = z1-z0}
+      local p1 = {x = x3-x0, y = y3-y0, z = (1/z3)-(1/z0)}
+      local p2 = {x = x1-x0, y = y1-y0, z = (1/z1)-(1/z0)}
       local n = {
         x = p1.y * p2.z - p2.y * p1.z,
         y = p1.x * p2.z - p2.x * p1.z,
@@ -221,10 +228,10 @@ function Faces:draw_faces(draw_vertices, l)
       else
 
         local points = {
-          [0] = {x = x0, y = y0, u = v0_u, v = v0_v},
-          [1] = {x = x1, y = y1, u = v1_u, v = v1_v},
-          [2] = {x = x2, y = y2, u = v2_u, v = v2_v},
-          [3] = {x = x3, y = y3, u = v3_u, v = v3_v},
+          [0] = {x = x0, y = y0, w = z0, u = v0_u, v = v0_v},
+          [1] = {x = x1, y = y1, w = z1, u = v1_u, v = v1_v},
+          [2] = {x = x2, y = y2, w = z2, u = v2_u, v = v2_v},
+          [3] = {x = x3, y = y3, w = z3, u = v3_u, v = v3_v},
         }
 
         local y_min = 1e9
@@ -261,13 +268,13 @@ function Faces:draw_faces(draw_vertices, l)
             local q = points[i_prev]
             local x_int = (q.x - p.x) * (0 - p.y) / (q.y - p.y) + p.x
             lines_buffer:set(L_X0_COL, 0, x_int)
-            -- todo)) lerp uv
+            -- todo)) lerp uvw
           end
           do
             local q = points[i_next]
             local x_int = (q.x - p.x) * (0 - p.y) / (q.y - p.y) + p.x
             lines_buffer:set(L_X1_COL, 0, x_int)
-            -- todo)) lerp uv
+            -- todo)) lerp uvw
           end
 
           left_y = 0
@@ -279,10 +286,12 @@ function Faces:draw_faces(draw_vertices, l)
 
           lines_buffer:set(L_X0_COL, left_y, p.x)
           lines_buffer:set(L_X1_COL, right_y, p.x)
-          lines_buffer:set(L_U0_COL, left_y, p.u)
-          lines_buffer:set(L_V0_COL, left_y, p.v)
-          lines_buffer:set(L_U1_COL, right_y, p.u)
-          lines_buffer:set(L_V1_COL, right_y, p.v)
+          lines_buffer:set(L_U0_COL, left_y, p.u * p.w)
+          lines_buffer:set(L_V0_COL, left_y, p.v * p.w)
+          lines_buffer:set(L_U1_COL, right_y, p.u * p.w)
+          lines_buffer:set(L_V1_COL, right_y, p.v * p.w)
+          lines_buffer:set(L_W0_COL, left_y, p.w)
+          lines_buffer:set(L_W1_COL, right_y, p.w)
         end
 
         if y_max > SCREEN_HEIGHT - 1  then
@@ -295,13 +304,13 @@ function Faces:draw_faces(draw_vertices, l)
             local q = points[i_prev]
             local x_int = (q.x - p.x) * (SCREEN_HEIGHT - 1 - p.y) / (q.y - p.y) + p.x
             lines_buffer:set(L_X0_COL, SCREEN_HEIGHT - 1, x_int)
-            -- todo)) lerp uv
+            -- todo)) lerp uvw
           end
           do
             local q = points[i_next]
             local x_int = (q.x - p.x) * (SCREEN_HEIGHT - 1 - p.y) / (q.y - p.y) + p.x
             lines_buffer:set(L_X1_COL, SCREEN_HEIGHT - 1, x_int)
-            -- todo)) lerp uv
+            -- todo)) lerp uvw
           end
 
           left_y_final = SCREEN_HEIGHT - 1
@@ -313,10 +322,12 @@ function Faces:draw_faces(draw_vertices, l)
 
           lines_buffer:set(L_X0_COL, left_y_final, p.x)
           lines_buffer:set(L_X1_COL, right_y_final, p.x)
-          lines_buffer:set(L_U0_COL, left_y_final, p.u)
-          lines_buffer:set(L_V0_COL, left_y_final, p.v)
-          lines_buffer:set(L_U1_COL, right_y_final, p.u)
-          lines_buffer:set(L_V1_COL, right_y_final, p.v)
+          lines_buffer:set(L_U0_COL, left_y_final, p.u * p.w)
+          lines_buffer:set(L_V0_COL, left_y_final, p.v * p.w)
+          lines_buffer:set(L_U1_COL, right_y_final, p.u * p.w)
+          lines_buffer:set(L_V1_COL, right_y_final, p.v * p.w)
+          lines_buffer:set(L_W0_COL, left_y_final, p.w)
+          lines_buffer:set(L_W1_COL, right_y_final, p.w)
         end
 
         y_min = flr(y_min)
@@ -333,16 +344,19 @@ function Faces:draw_faces(draw_vertices, l)
               lines_buffer:lerp(left_y * L_LEN + L_X0_COL, len, L_LEN, 1)
               lines_buffer:lerp(left_y * L_LEN + L_U0_COL, len, L_LEN, 1)
               lines_buffer:lerp(left_y * L_LEN + L_V0_COL, len, L_LEN, 1)
+              lines_buffer:lerp(left_y * L_LEN + L_W0_COL, len, L_LEN, 1)
               break
             else
               local left_y_next = flr(points[j].y)
               local len = left_y_next - left_y
               lines_buffer:set(L_X0_COL, left_y_next, points[j].x)
-              lines_buffer:set(L_U0_COL, left_y_next, points[j].u)
-              lines_buffer:set(L_V0_COL, left_y_next, points[j].v)
+              lines_buffer:set(L_U0_COL, left_y_next, points[j].u * points[j].w)
+              lines_buffer:set(L_V0_COL, left_y_next, points[j].v * points[j].w)
+              lines_buffer:set(L_W0_COL, left_y_next, points[j].w)
               lines_buffer:lerp(left_y * L_LEN + L_X0_COL, len, L_LEN, 1)
               lines_buffer:lerp(left_y * L_LEN + L_U0_COL, len, L_LEN, 1)
               lines_buffer:lerp(left_y * L_LEN + L_V0_COL, len, L_LEN, 1)
+              lines_buffer:lerp(left_y * L_LEN + L_W0_COL, len, L_LEN, 1)
               left_y = left_y_next
             end
           end
@@ -359,16 +373,19 @@ function Faces:draw_faces(draw_vertices, l)
               lines_buffer:lerp(right_y * L_LEN + L_X1_COL, len, L_LEN, 1)
               lines_buffer:lerp(right_y * L_LEN + L_U1_COL, len, L_LEN, 1)
               lines_buffer:lerp(right_y * L_LEN + L_V1_COL, len, L_LEN, 1)
+              lines_buffer:lerp(right_y * L_LEN + L_W1_COL, len, L_LEN, 1)
               break
             else
               local right_y_next = flr(points[j].y)
               local len = right_y_next - right_y
               lines_buffer:set(L_X1_COL, right_y_next, points[j].x)
-              lines_buffer:set(L_U1_COL, right_y_next, points[j].u)
-              lines_buffer:set(L_V1_COL, right_y_next, points[j].v)
+              lines_buffer:set(L_U1_COL, right_y_next, points[j].u * points[j].w)
+              lines_buffer:set(L_V1_COL, right_y_next, points[j].v * points[j].w)
+              lines_buffer:set(L_W1_COL, right_y_next, points[j].w)
               lines_buffer:lerp(right_y * L_LEN + L_X1_COL, len, L_LEN, 1)
               lines_buffer:lerp(right_y * L_LEN + L_U1_COL, len, L_LEN, 1)
               lines_buffer:lerp(right_y * L_LEN + L_V1_COL, len, L_LEN, 1)
+              lines_buffer:lerp(right_y * L_LEN + L_W1_COL, len, L_LEN, 1)
               right_y = right_y_next
             end
           end
@@ -380,7 +397,8 @@ function Faces:draw_faces(draw_vertices, l)
         -- color(c)
         profile("face_texture")
         lines_buffer:copy(s, true, L_S_COL, L_S_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
-        tline3d(lines_buffer, L_LEN * y_min, len, 9, L_LEN)    
+        -- tline3d(lines_buffer, L_LEN * y_min, len, 9, L_LEN)    
+        tline3d(lines_buffer, L_LEN * y_min, len, 12, L_LEN)    
         profile("face_texture")
 
 
@@ -392,6 +410,8 @@ function Faces:draw_faces(draw_vertices, l)
           -- ambient = 0.1
           -- 0.1 reserved for specular, if I get to it...
           n_dot_l = n_dot_l * 0.8 + 0.1
+          -- todo)) debug
+          n_dot_l = 0.5
           
           -- printh("dot:"..n_dot_l)
           local lighting_color_0 = 35

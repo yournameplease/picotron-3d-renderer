@@ -169,18 +169,25 @@ function Faces:draw_faces(draw_vertices, l)
   profile("face_setup")
   local z_idx = self.data:mul(VERTICES_LEN):add(2)
 
-  draw_vertices.data:take(z_idx, self.sort, 0, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
-  self.sort:copy(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
-  draw_vertices.data:take(z_idx, self.sort, 1, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
-  self.sort:add(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
-  draw_vertices.data:take(z_idx, self.sort, 2, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
-  self.sort:add(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
-  draw_vertices.data:take(z_idx, self.sort, 3, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
-  self.sort:add(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
-  self.sort:mul(0.25, true, SORT_Z_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
+  for i = 0, draw_vertices.length do
+    self.sort:set(SORT_IDX_COL, i, i)
+  end
 
-  -- self.sort:sort(SORT_Z_COL, false)
-  self.data:sort(SORT_Z_COL, true)
+  -- draw_vertices.data:take(z_idx, self.sort, 0, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
+  -- self.sort:copy(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
+  -- draw_vertices.data:take(z_idx, self.sort, 1, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
+  -- self.sort:add(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
+  -- draw_vertices.data:take(z_idx, self.sort, 2, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
+  -- self.sort:add(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
+  -- draw_vertices.data:take(z_idx, self.sort, 3, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
+  -- self.sort:add(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
+  -- self.sort:mul(0.25, true, SORT_Z_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
+
+  draw_vertices.data:take(z_idx, self.sort, 0, SORT_Z_COL, 1, FACES_LEN, SORT_LEN, self.length)
+  
+  -- self.sort:sort(SORT_Z_COL, true)
+  self.sort:sort(SORT_Z_COL, false)
+  -- self.data:sort(SORT_Z_COL, true)
   profile("face_setup")
 
   -- ud_util.debug(self.sort)
@@ -411,7 +418,7 @@ function Faces:draw_faces(draw_vertices, l)
           -- 0.1 reserved for specular, if I get to it...
           n_dot_l = n_dot_l * 0.8 + 0.1
           -- todo)) debug
-          n_dot_l = 0.5
+          -- n_dot_l = 0.5
           
           -- printh("dot:"..n_dot_l)
           local lighting_color_0 = 35

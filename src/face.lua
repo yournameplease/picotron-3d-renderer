@@ -100,6 +100,7 @@ end
 function faces.of(vs, vertices)
   local self = faces.new(#vs)
   for _, v in ipairs(vs) do
+    printh(_)
     self:add(v, vertices)
   end
   -- ud_util.debugh(self.data)
@@ -401,72 +402,30 @@ function Faces:draw_faces(draw_vertices, l)
         local len = y_max - y_min
       profile("face_quad_setup")
 
-        -- color(c)
+        local nf = vector_normalize({x = nx, y = ny, z = nz})
+        n_dot_l = nf.x * l.x + nf.y * l.y + nf.z * l.z
+        -- ambient = 0.1
+        -- 0.1 reserved for specular, if I get to it...
+        n_dot_l = n_dot_l * 0.8 + 0.1
+        lighting_ramp:set_lighting_table(n_dot_l)
+
+        -- color(0xC000)
         profile("face_texture")
         lines_buffer:copy(s, true, L_S_COL, L_S_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
-        -- tline3d(lines_buffer, L_LEN * y_min, len, 9, L_LEN)    
+
+        
+
+        
         tline3d(lines_buffer, L_LEN * y_min, len, 12, L_LEN)    
         profile("face_texture")
 
 
         profile("face_lighting")
         do -- lighting
-          local nf = vector_normalize({x = nx, y = ny, z = nz})
-          n_dot_l = nf.x * l.x + nf.y * l.y + nf.z * l.z
 
-          -- ambient = 0.1
-          -- 0.1 reserved for specular, if I get to it...
-          n_dot_l = n_dot_l * 0.8 + 0.1
-          -- todo)) debug
-          -- n_dot_l = 0.5
-          
-          -- printh("dot:"..n_dot_l)
-          -- local lighting_color_0 = 35
-          -- local lighting_color_1 = 35
-          -- if n_dot_l < 0.05 then
-          --   lighting_color_0 = 33
-          -- elseif n_dot_l < 0.2 then
-          --   lighting_color_0 = 34
-          -- elseif n_dot_l > 0.95 then
-          --   lighting_color_0 = 37
-          -- elseif n_dot_l > 0.9 then
-          --   lighting_color_0 = 36
-          -- end
-          -- if n_dot_l < 0.2 then
-          --   lighting_color_1 = 33
-          -- elseif n_dot_l < 0.3 then
-          --   lighting_color_1 = 34
-          -- elseif n_dot_l > 0.9 then
-          --   lighting_color_1 = 37
-          -- elseif n_dot_l > 0.85 then
-          --   lighting_color_1 = 36
-          -- end
-
-          -- local lighting_color = (lighting_color_1 << 8) + lighting_color_0 
-          -- -- if lighting_color ~= 35 then
-          --   fillp(0xA5A5)
-          --   -- poke(0x550b,0x3f)
-          --   -- fillp(
-          --   --   0xAA,
-          --   --   0x55,
-          --   --   0xAA,
-          --   --   0x55,
-          --   --   0xAA,
-          --   --   0x55,
-          --   --   0xAA,
-          --   --   0x55
-          --   -- )
-          --   color(lighting_color)
-          --   -- color(0x3334)
-          --   -- lighting_color = 0x0809
-          --   -- lighting_color = (08<<8) + 9
-          --   -- lines_buffer:copy(lighting_color, true, L_C_COL, L_C_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
-          lighting_ramp:set_lighting(n_dot_l)
-        profile("face_lighting_lines")
-            line(lines_buffer, L_X0_COL + L_LEN * y_min, len, 4, L_LEN)
-        profile("face_lighting_lines")
-          --   fillp()
-          -- end
+        -- profile("face_lighting_lines")
+            -- line(lines_buffer, L_X0_COL + L_LEN * y_min, len, 4, L_LEN)
+        -- profile("face_lighting_lines")
           lighting_ramp:clear()
         end
         profile("face_lighting")

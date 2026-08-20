@@ -3,6 +3,7 @@ local dither = require("src.dither")
 ---@class LightingRamp
 ---@field dither DitherRamp
 ---@field colors integer[]
+---@field color_tables integer[]
 local LightingRamp = {}
 LightingRamp.__index = LightingRamp
 
@@ -17,6 +18,7 @@ function lighting.new()
   self.dither = dither.new_hatched(false, false)
   -- self.colors = {33, 34, 35, 36, 37}
   self.colors = {34, 35, 36}
+  self.color_tables = {0xA0, 0x00, 0xC0}
 
   return self
 end
@@ -37,6 +39,18 @@ function LightingRamp:set_lighting(t)
   local col = (c1 << 8) | c0
 
   color(col)
+  local dither_t = (t * len) % 1
+  self.dither:set_dither(dither_t)
+end
+
+---@param t number value in [0,1]
+function LightingRamp:set_lighting_table(t)
+  t = mid(0, t, 1)
+  t = (t+1) / 2
+  printh(t)
+  
+  local len = #self.colors - 1
+
   local dither_t = (t * len) % 1
   self.dither:set_dither(dither_t)
 end

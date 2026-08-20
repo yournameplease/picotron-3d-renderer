@@ -5,10 +5,8 @@ local Y_COL = 1
 local Z_COL = 2
 local W_COL = 3
 
----@class Vertex
----@field x number
----@field y number
----@field z number
+--- 1d
+---@alias Vertex userdata
 
 ---@class Vertices
 ---@field data userdata

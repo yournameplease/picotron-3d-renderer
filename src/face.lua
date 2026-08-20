@@ -100,7 +100,6 @@ end
 function faces.of(vs, vertices)
   local self = faces.new(#vs)
   for _, v in ipairs(vs) do
-    printh(_)
     self:add(v, vertices)
   end
   -- ud_util.debugh(self.data)

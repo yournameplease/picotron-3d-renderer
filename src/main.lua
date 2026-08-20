@@ -93,15 +93,23 @@ function _init()
   for l = 0, GRID_S-1 do
     for m = 0, GRID_S-1 do
       local s = (l*GRID_S+m)%4+1
-      -- scene_builder:add_cube(o + vec(3*l, 0, 3*m), i_hat * (1 + l/GRID_S), j_hat, k_hat * (1 + m/GRID_S), s)
+      scene_builder:add_cube(o + vec(3*l, 0, 3*m), i_hat * (1 + l/GRID_S), j_hat, k_hat * (1 + m/GRID_S), s)
     end
   end
 
+  -- scene_builder:add_sphere(
+  --   vec(15, 5, 25),
+  --   10,
+  --   20,
+  --   10,
+  --   2
+  -- )
+  
   scene_builder:add_sphere(
-    vec(15, 5, 25),
-    10,
-    20,
-    10,
+    vec(3, 5, 15),
+    2,
+    8,
+    4,
     2
   )
  

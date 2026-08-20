@@ -89,7 +89,6 @@ function SceneBuilder:add_sphere(o, r, ring_vertices, layers, s)
           small_r * math.sin(theta))
         
       add(self.vertices, p)
-      printh(p)
     end
   end
 

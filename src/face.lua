@@ -421,49 +421,53 @@ function Faces:draw_faces(draw_vertices, l)
           -- n_dot_l = 0.5
           
           -- printh("dot:"..n_dot_l)
-          local lighting_color_0 = 35
-          local lighting_color_1 = 35
-          if n_dot_l < 0.05 then
-            lighting_color_0 = 33
-          elseif n_dot_l < 0.2 then
-            lighting_color_0 = 34
-          elseif n_dot_l > 0.95 then
-            lighting_color_0 = 37
-          elseif n_dot_l > 0.9 then
-            lighting_color_0 = 36
-          end
-          if n_dot_l < 0.2 then
-            lighting_color_1 = 33
-          elseif n_dot_l < 0.3 then
-            lighting_color_1 = 34
-          elseif n_dot_l > 0.9 then
-            lighting_color_1 = 37
-          elseif n_dot_l > 0.85 then
-            lighting_color_1 = 36
-          end
-
-          local lighting_color = (lighting_color_1 << 8) + lighting_color_0 
-          -- if lighting_color ~= 35 then
-            fillp(0xA5A5)
-            -- poke(0x550b,0x3f)
-            -- fillp(
-            --   0xAA,
-            --   0x55,
-            --   0xAA,
-            --   0x55,
-            --   0xAA,
-            --   0x55,
-            --   0xAA,
-            --   0x55
-            -- )
-            color(lighting_color)
-            -- color(0x3334)
-            -- lighting_color = 0x0809
-            -- lighting_color = (08<<8) + 9
-            -- lines_buffer:copy(lighting_color, true, L_C_COL, L_C_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
-            line(lines_buffer, L_X0_COL + L_LEN * y_min, len, 4, L_LEN)
-            fillp()
+          -- local lighting_color_0 = 35
+          -- local lighting_color_1 = 35
+          -- if n_dot_l < 0.05 then
+          --   lighting_color_0 = 33
+          -- elseif n_dot_l < 0.2 then
+          --   lighting_color_0 = 34
+          -- elseif n_dot_l > 0.95 then
+          --   lighting_color_0 = 37
+          -- elseif n_dot_l > 0.9 then
+          --   lighting_color_0 = 36
           -- end
+          -- if n_dot_l < 0.2 then
+          --   lighting_color_1 = 33
+          -- elseif n_dot_l < 0.3 then
+          --   lighting_color_1 = 34
+          -- elseif n_dot_l > 0.9 then
+          --   lighting_color_1 = 37
+          -- elseif n_dot_l > 0.85 then
+          --   lighting_color_1 = 36
+          -- end
+
+          -- local lighting_color = (lighting_color_1 << 8) + lighting_color_0 
+          -- -- if lighting_color ~= 35 then
+          --   fillp(0xA5A5)
+          --   -- poke(0x550b,0x3f)
+          --   -- fillp(
+          --   --   0xAA,
+          --   --   0x55,
+          --   --   0xAA,
+          --   --   0x55,
+          --   --   0xAA,
+          --   --   0x55,
+          --   --   0xAA,
+          --   --   0x55
+          --   -- )
+          --   color(lighting_color)
+          --   -- color(0x3334)
+          --   -- lighting_color = 0x0809
+          --   -- lighting_color = (08<<8) + 9
+          --   -- lines_buffer:copy(lighting_color, true, L_C_COL, L_C_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
+          lighting_ramp:set_lighting(n_dot_l)
+        profile("face_lighting_lines")
+            line(lines_buffer, L_X0_COL + L_LEN * y_min, len, 4, L_LEN)
+        profile("face_lighting_lines")
+          --   fillp()
+          -- end
+          lighting_ramp:clear()
         end
         profile("face_lighting")
        

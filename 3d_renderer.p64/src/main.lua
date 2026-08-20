@@ -13,6 +13,8 @@ ALPHA_U = 128
 ALPHA_V = 128
 
 local vertices = require("src.vertex")
+local dither = require("src.dither")
+local lighting = require("src.lighting")
 local faces = require("src.face")
 
 local BUFFER_MAX = 1024
@@ -21,6 +23,11 @@ local BUFFER_MAX = 1024
 
 local buf = userdata("f64", BUFFER_MAX)
 
+local dither_ramp
+-- local lighting_ramp
+-- todo)) global
+---@type LightingRamp
+lighting_ramp = nil
 local v
 local f
 local proj
@@ -72,8 +79,8 @@ function _init()
   local j_hat = {x = 0, y = 1, z = 0}
   local k_hat = {x = 0, y = 0, z = 1}
 
-  -- local GRID_S = 6
-  local GRID_S = 2
+  local GRID_S = 6
+  -- local GRID_S = 2
   
   for l = 0, GRID_S-1 do
     for m = 0, GRID_S-1 do
@@ -91,52 +98,54 @@ function _init()
 
       local offset = 8*(l*GRID_S+m)
       local c = (l*GRID_S+m)%7+8
+      local s = (l*GRID_S+m)%4+1
+      
       add(cube_faces, {
-        s = 1,
+        s = s,
         v0 = offset+0, v0_u = 0, v0_v = 0,
-        v1 = offset+2, v1_u = 15, v1_v = 0,
-        v2 = offset+3, v2_u = 15, v2_v = 15,
-        v3 = offset+1, v3_u = 0, v3_v = 15,
+        v1 = offset+2, v1_u = 16, v1_v = 0,
+        v2 = offset+3, v2_u = 16, v2_v = 16,
+        v3 = offset+1, v3_u = 0, v3_v = 16,
         c = c
       }) -- 8})
       add(cube_faces, {
-        s = 2,
+        s = s,
         v0 = offset+4, v0_u = 0, v0_v = 0,
-        v1 = offset+5, v1_u = 15, v1_v = 0,
-        v2 = offset+7, v2_u = 15, v2_v = 15,
-        v3 = offset+6, v3_u = 0, v3_v = 15,
+        v1 = offset+5, v1_u = 16, v1_v = 0,
+        v2 = offset+7, v2_u = 16, v2_v = 16,
+        v3 = offset+6, v3_u = 0, v3_v = 16,
         c = c
       }) -- 9})
       add(cube_faces, {
-        s = 3,
+        s = s,
         v0 = offset+0, v0_u = 0, v0_v = 0,
-        v1 = offset+1, v1_u = 15, v1_v = 0,
-        v2 = offset+5, v2_u = 15, v2_v = 15,
-        v3 = offset+4, v3_u = 0, v3_v = 15,
+        v1 = offset+1, v1_u = 16, v1_v = 0,
+        v2 = offset+5, v2_u = 16, v2_v = 16,
+        v3 = offset+4, v3_u = 0, v3_v = 16,
         c = c
       }) -- 10})
       add(cube_faces, {
-        s = 4,
+        s = s,
         v0 = offset+2, v0_u = 0, v0_v = 0,
-        v1 = offset+6, v1_u = 15, v1_v = 0,
-        v2 = offset+7, v2_u = 15, v2_v = 15,
-        v3 = offset+3, v3_u = 0, v3_v = 15,
+        v1 = offset+6, v1_u = 16, v1_v = 0,
+        v2 = offset+7, v2_u = 16, v2_v = 16,
+        v3 = offset+3, v3_u = 0, v3_v = 16,
         c = c
       }) -- 11})
       add(cube_faces, {
-        s = 2,
+        s = s,
         v0 = offset+0, v0_u = 0, v0_v = 0,
-        v1 = offset+4, v1_u = 15, v1_v = 0,
-        v2 = offset+6, v2_u = 15, v2_v = 15,
-        v3 = offset+2, v3_u = 0, v3_v = 15,
+        v1 = offset+4, v1_u = 16, v1_v = 0,
+        v2 = offset+6, v2_u = 16, v2_v = 16,
+        v3 = offset+2, v3_u = 0, v3_v = 16,
         c = c
       }) -- 12})
       add(cube_faces, {
-        s = 2,
+        s = s,
         v0 = offset+1, v0_u = 0, v0_v = 0,
-        v1 = offset+3, v1_u = 15, v1_v = 0,
-        v2 = offset+7, v2_u = 15, v2_v = 15,
-        v3 = offset+5, v3_u = 0, v3_v = 15,
+        v1 = offset+3, v1_u = 16, v1_v = 0,
+        v2 = offset+7, v2_u = 16, v2_v = 16,
+        v3 = offset+5, v3_u = 0, v3_v = 16,
         c = c
       }) -- 13})
     end
@@ -155,7 +164,7 @@ function _init()
     ALPHA_U, 0, U_0, 0,
     0, ALPHA_V, V_0, 0,
     0, 0, 1, 0,
-    0, 0, 0, 0
+    0, 0, 0, 1
   )
   cam_to_screen:transpose(true)
 
@@ -171,11 +180,16 @@ function _init()
   f = faces.of(cube_faces, cube_vertices)
 
   apply_color_table(8)
+
+  lighting_ramp = lighting.new()
+  
+  profile.enabled(true, true)
 end
 
 
 
 function _update()
+  profile("update")
   t = t + 1/60
   
   if btn(0) then camera.x = camera.x - 0.1 end
@@ -192,9 +206,11 @@ function _update()
   if btn(11) then camera.yaw = camera.yaw - 0.001 end
   if btn(14) then camera.roll = camera.roll - 0.001 end
   if btn(15) then camera.roll = camera.roll + 0.001 end
+  profile("update")
 end
 
 function _draw()
+  profile("draw_setup")
   light = vector_normalize({
     x = cos(t / 20),
     y = -2,
@@ -206,9 +222,9 @@ function _draw()
   local b = camera.pitch
   local g = camera.roll
   world_to_cam:set(0, 0,
-    cos(b)*cos(g), -cos(b)*sin(g), sin(b), -camera.x, -- magic minus sign :O
-    cos(a)*sin(g)+sin(a)*sin(b)*cos(g), cos(a)*cos(g)-sin(a)*sin(b)*sin(g), -sin(a)*cos(b), camera.y,
-    sin(a)*sin(g)-cos(a)*sin(b)*cos(g), sin(a)*cos(g)+cos(a)*sin(b)*sin(g), cos(a)*cos(b), camera.z,
+    math.cos(b)*math.cos(g), -math.cos(b)*math.sin(g), math.sin(b), -camera.x, -- magic minus sign :O
+    math.cos(a)*math.sin(g)+math.sin(a)*math.sin(b)*math.cos(g), math.cos(a)*math.cos(g)-math.sin(a)*math.sin(b)*math.sin(g), -math.sin(a)*math.cos(b), camera.y,
+    math.sin(a)*math.sin(g)-math.cos(a)*math.sin(b)*math.cos(g), math.sin(a)*math.cos(g)+math.cos(a)*math.sin(b)*math.sin(g), math.cos(a)*math.cos(b), camera.z,
     0, 0, 0, 1
   )
   world_to_cam:transpose(true)
@@ -218,6 +234,8 @@ function _draw()
   -- DEBUG = true
   DEBUG = false
   
+  profile("draw_setup")
+  profile("transform_vertices")
   color(5)
   v:transform(v_proj.data, world_to_cam)
   if DEBUG then
@@ -233,8 +251,11 @@ function _draw()
   end
 
   v_proj:transform(v_cam.data, cam_to_screen)
-  v_cam.data:div(v_cam.data, true, 2, 0, 1, 4, 4, v_proj.length)
-  v_cam.data:div(v_cam.data, true, 2, 1, 1, 4, 4, v_proj.length)
+  v_cam.data.div(1, v_cam.data, v_cam.data, 2, 2, 1, 4, 4, v_proj.length)
+  -- v_cam.data:div(v_cam.data, true, 3, 2, 1, 4, 4, v_proj.length)
+  v_cam.data:mul(v_cam.data, true, 2, 0, 1, 4, 4, v_proj.length)
+  v_cam.data:mul(v_cam.data, true, 2, 1, 1, 4, 4, v_proj.length)
+
   if DEBUG then
   print(v_cam.length .. ", " .. v_cam.capacity)
   print(v_cam.data[0] .. ", " .. v_cam.data[1] .. ", " .. v_cam.data[2] .. ", " .. v_cam.data[3] .. ", ")
@@ -246,13 +267,16 @@ function _draw()
   print(v_cam.data[24+0] .. ", " .. v_cam.data[24+1] .. ", " .. v_cam.data[24+2] .. ", " .. v_cam.data[24+3] .. ", ")
   print(v_cam.data[28+0] .. ", " .. v_cam.data[28+1] .. ", " .. v_cam.data[28+2] .. ", " .. v_cam.data[28+3] .. ", ")
   end
+  profile("transform_vertices")
 
+  profile("draw_faces")
   local faces_drawn = f:draw_faces(v_cam, light)
+  profile("draw_faces")
 
-  color(7)
+  -- color(7)
   -- f:draw_wireframes(v_cam, buf)
   
-  color(8)
+  -- color(8)
   -- pset(v_cam.data, 0, v_cam.length, 2, 4)
 
   print("CPU: " .. stat(1), 400, 3, 7)
@@ -260,5 +284,11 @@ function _draw()
   print("CAM: " .. camera.x .. "," .. camera.y .. "," .. camera.z)
   print("VERTICES: " .. v.length)
   print("FACES: " .. faces_drawn .."/".. f.length)
+
+  color(6)
+  profile.draw()
+
+  lighting_ramp.dither:debug_rect(10, 10, 110, 110, 7)
+  -- lighting_ramp.dither:debug_circ(210, 210, 100, 7)
 end
 

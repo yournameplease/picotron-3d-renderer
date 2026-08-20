@@ -13,6 +13,8 @@ ALPHA_U = 128
 ALPHA_V = 128
 
 local vertices = require("src.vertex")
+local dither = require("src.dither")
+local lighting = require("src.lighting")
 local faces = require("src.face")
 
 local BUFFER_MAX = 1024
@@ -21,6 +23,11 @@ local BUFFER_MAX = 1024
 
 local buf = userdata("f64", BUFFER_MAX)
 
+local dither_ramp
+-- local lighting_ramp
+-- todo)) global
+---@type LightingRamp
+lighting_ramp = nil
 local v
 local f
 local proj
@@ -174,6 +181,8 @@ function _init()
 
   apply_color_table(8)
 
+  lighting_ramp = lighting.new()
+  
   profile.enabled(true, true)
 end
 
@@ -278,5 +287,8 @@ function _draw()
 
   color(6)
   profile.draw()
+
+  -- lighting_ramp.dither:debug_rect(10, 10, 110, 110, 7)
+  -- lighting_ramp.dither:debug_circ(210, 210, 100, 7)
 end
 

@@ -16,6 +16,7 @@ local vertices = require("src.vertex")
 local dither = require("src.dither")
 local lighting = require("src.lighting")
 local faces = require("src.face")
+local billboards = require("src.billboard")
 local scene = require("src.scene")
 
 local BUFFER_MAX = 1024
@@ -30,6 +31,7 @@ local dither_ramp
 ---@type LightingRamp
 lighting_ramp = nil
 local v
+local bb
 local f
 local proj
 local image
@@ -112,6 +114,18 @@ function _init()
     4,
     2
   )
+
+  scene_builder:add_billboard(
+    vec(-3, -4, 5),
+    5
+  )
+ 
+  for i = 0, 5 do
+    scene_builder:add_billboard(
+      vec(-3, -2+i, 2+i),
+      4
+    )
+  end
  
 
   world_to_cam = userdata("f64", 4, 4)
@@ -141,6 +155,7 @@ function _init()
   printh(light.x .. light.y .. light.z)
 
   f = faces.of(scene_builder.faces, scene_builder.vertices)
+  bb = billboards.of(scene_builder.billboards)
 
   apply_color_table(8, 0)
   -- apply_color_table(8, 1)
@@ -238,6 +253,10 @@ function _draw()
   profile("draw_faces")
   local faces_drawn = f:draw_faces(v_cam, light)
   profile("draw_faces")
+
+  profile("draw_billboards")
+  bb:draw(v_cam)
+  profile("draw_billboards")
 
   -- color(7)
   -- f:draw_wireframes(v_cam, buf)

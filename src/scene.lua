@@ -5,6 +5,7 @@ local ud_util = require("src.userdata")
 ---@class SceneBuilder
 ---@field vertices Vertex[]
 ---@field faces Face[]
+---@field billboards Billboard[]
 local SceneBuilder = {}
 SceneBuilder.__index = SceneBuilder
 
@@ -14,9 +15,19 @@ function scene.builder()
   return setmetatable({
     vertices = {},
     faces = {},
+    billboards = {},
   }, SceneBuilder)
 end
  
+function SceneBuilder:add_billboard(p, s)
+  local v_start = #self.vertices
+  add(self.vertices, p)
+  add(self.billboards, {
+    s = s,
+    v = v_start,
+  })
+end
+  
 function SceneBuilder:add_cube(o, i_hat, j_hat, k_hat, s)
   local v_start = #self.vertices
 

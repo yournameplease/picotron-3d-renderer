@@ -16,6 +16,7 @@ local vertices = require("src.vertex")
 local dither = require("src.dither")
 local lighting = require("src.lighting")
 local faces = require("src.face")
+local billboards = require("src.billboard")
 local scene = require("src.scene")
 
 local BUFFER_MAX = 1024
@@ -30,6 +31,7 @@ local dither_ramp
 ---@type LightingRamp
 lighting_ramp = nil
 local v
+local bb
 local f
 local proj
 local image
@@ -87,24 +89,56 @@ function _init()
 
   -- local GRID_S = 6
   local GRID_S = 3
+  -- local GRID_S = 1
 
   local scene_builder = scene.builder()
   
-  for l = 0, GRID_S-1 do
-    for m = 0, GRID_S-1 do
-      local s = (l*GRID_S+m)%4+1
-      -- scene_builder:add_cube(o + vec(3*l, 0, 3*m), i_hat * (1 + l/GRID_S), j_hat, k_hat * (1 + m/GRID_S), s)
-    end
-  end
+  -- test scene
+  -- do
+  --   for l = 0, GRID_S-1 do
+  --     for m = 0, GRID_S-1 do
+  --       local s = (l*GRID_S+m)%4+1
+  --       scene_builder:add_cube(o + vec(3*l, 0, 3*m), i_hat * (1 + l/GRID_S), j_hat, k_hat * (1 + m/GRID_S), s)
+  --     end
+  --   end
 
-  scene_builder:add_sphere(
-    vec(15, 5, 25),
-    10,
-    20,
-    10,
-    2
-  )
- 
+  --   -- scene_builder:add_sphere(
+  --   --   vec(15, 5, 25),
+  --   --   10,
+  --   --   20,
+  --   --   10,
+  --   --   2
+  --   -- )
+  
+  --   scene_builder:add_sphere(
+  --     vec(3, 5, 15),
+  --     2,
+  --     8,
+  --     4,
+  --     2
+  --   )
+
+  --   scene_builder:add_billboard(
+  --     vec(-3, -4, 5),
+  --     5
+  --   )
+  -- end
+
+  -- diorama
+  do
+    scene_builder:add_plane(
+      vec(0, 0, 3),
+      vec(2, 0, 0),
+      vec(0, 0, 2),
+      5
+    )
+    
+    scene_builder:add_billboard(
+      vec(-3, -4, 5),
+      5
+    )
+  end
+  
 
   world_to_cam = userdata("f64", 4, 4)
   world_to_cam:set(0, 0,
@@ -133,6 +167,7 @@ function _init()
   printh(light.x .. light.y .. light.z)
 
   f = faces.of(scene_builder.faces, scene_builder.vertices)
+  bb = billboards.of(scene_builder.billboards)
 
   apply_color_table(8, 0)
   -- apply_color_table(8, 1)
@@ -230,6 +265,10 @@ function _draw()
   profile("draw_faces")
   local faces_drawn = f:draw_faces(v_cam, light)
   profile("draw_faces")
+
+  profile("draw_billboards")
+  bb:draw(v_cam)
+  profile("draw_billboards")
 
   -- color(7)
   -- f:draw_wireframes(v_cam, buf)

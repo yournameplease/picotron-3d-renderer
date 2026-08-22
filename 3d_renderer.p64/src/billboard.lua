@@ -69,8 +69,8 @@ function Billboards:add(billboard)
   self.data:set(B_V_COL, self.length, billboard.v)
   self.to_draw:set(D_SH_COL, self.length, 16)
   self.to_draw:set(D_SW_COL, self.length, 16)
-  self.to_draw:set(D_WORLD_H_COL, self.length, 128)--16)
-  self.to_draw:set(D_WORLD_W_COL, self.length, 128)--16)
+  self.to_draw:set(D_WORLD_H_COL, self.length, 256)--16)
+  self.to_draw:set(D_WORLD_W_COL, self.length, 256)--16)
 
   self.length = self.length + 1
 end

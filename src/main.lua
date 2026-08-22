@@ -93,41 +93,80 @@ function _init()
 
   local scene_builder = scene.builder()
   
-  for l = 0, GRID_S-1 do
-    for m = 0, GRID_S-1 do
-      local s = (l*GRID_S+m)%4+1
-      scene_builder:add_cube(o + vec(3*l, 0, 3*m), i_hat * (1 + l/GRID_S), j_hat, k_hat * (1 + m/GRID_S), s)
-    end
-  end
+  -- test scene
+  -- do
+  --   for l = 0, GRID_S-1 do
+  --     for m = 0, GRID_S-1 do
+  --       local s = (l*GRID_S+m)%4+1
+  --       scene_builder:add_cube(o + vec(3*l, 0, 3*m), i_hat * (1 + l/GRID_S), j_hat, k_hat * (1 + m/GRID_S), s)
+  --     end
+  --   end
 
-  -- scene_builder:add_sphere(
-  --   vec(15, 5, 25),
-  --   10,
-  --   20,
-  --   10,
-  --   2
-  -- )
+  --   -- scene_builder:add_sphere(
+  --   --   vec(15, 5, 25),
+  --   --   10,
+  --   --   20,
+  --   --   10,
+  --   --   2
+  --   -- )
   
-  scene_builder:add_sphere(
-    vec(3, 5, 15),
-    2,
-    8,
-    4,
-    2
-  )
+  --   scene_builder:add_sphere(
+  --     vec(3, 5, 15),
+  --     2,
+  --     8,
+  --     4,
+  --     2
+  --   )
 
-  scene_builder:add_billboard(
-    vec(-3, -4, 5),
-    5
-  )
- 
-  for i = 0, 5 do
-    -- scene_builder:add_billboard(
-    --   vec(-3, -2+i, 2+i),
-    --   4
+  --   scene_builder:add_billboard(
+  --     vec(-3, -4, 5),
+  --     5
+  --   )
+  -- end
+
+  -- diorama
+  do
+    -- scene_builder:add_plane(
+    --   vec(0, 0, 3),
+    --   vec(2, 0, 0),
+    --   vec(0, 0, 2),
+    --   16
     -- )
+    scene_builder:add_cube(
+      vec(0, -1, 3),
+      vec(1, 0, 0),
+      vec(0, 1, 0),
+      vec(0, 0, 1),
+      17
+    )
+    scene_builder:add_cube(
+      vec(-2, -1, 4),
+      vec(1, 0, 0),
+      vec(0, 1, 0),
+      vec(0, 0, 1),
+      17
+    )
+    scene_builder:add_cube(
+      vec(2, -1, 2),
+      vec(1, 0, 0),
+      vec(0, 1, 0),
+      vec(0, 0, 1),
+      17
+    )
+    scene_builder:add_cube(
+      vec(3, -1, 4),
+      vec(1, 0, 0),
+      vec(0, 1, 0),
+      vec(0, 0, 1),
+      17
+    )
+    
+    scene_builder:add_billboard(
+      vec(-1, 0, 1),
+      0x90000 | 18
+    )
   end
- 
+  
 
   world_to_cam = userdata("f64", 4, 4)
   world_to_cam:set(0, 0,

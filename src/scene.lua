@@ -28,6 +28,24 @@ function SceneBuilder:add_billboard(p, s)
   })
 end
   
+function SceneBuilder:add_plane(o, i_hat, j_hat, s)
+  local v_start = #self.vertices
+
+  for i = -1, 1, 2 do
+    for j = -1, 1, 2 do
+      add(self.vertices, o + i * i_hat + j * j_hat)
+    end
+  end
+
+  add(self.faces, {
+    s = s,
+    v0 = v_start+0, v0_u = 0, v0_v = 0,
+    v1 = v_start+1, v1_u = 16, v1_v = 0,
+    v2 = v_start+3, v2_u = 16, v2_v = 16,
+    v3 = v_start+2, v3_u = 0, v3_v = 16,
+  })
+end  
+
 function SceneBuilder:add_cube(o, i_hat, j_hat, k_hat, s)
   local v_start = #self.vertices
 

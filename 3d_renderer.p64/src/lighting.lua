@@ -27,7 +27,6 @@ end
 function LightingRamp:set_lighting(t)
   t = mid(-1, t, 1)
   t = (t+1) / 2
-  printh(t)
   
   local len = #self.colors - 1
   local c0_idx = flr(t * len)
@@ -47,7 +46,6 @@ end
 function LightingRamp:set_lighting_table(t)
   t = mid(0, t, 1)
   t = (t+1) / 2
-  printh(t)
   
   local len = #self.colors - 1
 

@@ -40,7 +40,7 @@ local cam_to_screen
 local v_proj
 local v_cam
 -- todo: convert to userdata
-local light = {x = 1, y = -2, z = -3}
+local light = vec(1, -2, -3)
 local t = 0
 
 local camera
@@ -64,14 +64,14 @@ function apply_color_table(color_table_sprite, idx)
 	--that pal() modifies.
 end
 
----@param vec Vertex
+---@param v Vertex
 ---@return Vertex
-function vector_normalize(vec)
-  local mag = (vec.x * vec.x + vec.y * vec.y + vec.z * vec.z) ^ 0.5
+function vector_normalize(v)
+  local mag = v:dot(v) ^ 0.5
   if mag < EPSILON then
-    return {x = 0, y = 0, z = 0}
+    return vec(0, 0, 0)
   end
-  return {x = vec.x / mag, y = vec.y / mag, z = vec.z / mag}
+  return vec(v.x / mag, v.y / mag, v.z / mag)
 end
 
 function _init()
@@ -87,7 +87,7 @@ function _init()
   local j_hat = vec(0, 1, 0)
   local k_hat = vec(0, 0, 1)
 
-  local GRID_S = 6
+  local GRID_S = 5
   -- local GRID_S = 1
 
   local scene_builder = scene.builder()
@@ -235,11 +235,7 @@ end
 
 function _draw()
   profile("draw_setup")
-  light = vector_normalize({
-    x = cos(t / 20),
-    y = -2,
-    z = sin(0.2 + t / 20)
-  })
+  light = vector_normalize(vec(cos(t / 20), -2, sin(0.2 + t / 20)))
 
   
   local a = camera.yaw

@@ -31,8 +31,8 @@ end
 function SceneBuilder:add_plane(o, i_hat, j_hat, s)
   local v_start = #self.vertices
 
-  for i = -1, 1, 2 do
-    for j = -1, 1, 2 do
+  for i = 0, 1 do
+    for j = 0, 1 do
       add(self.vertices, o + i * i_hat + j * j_hat)
     end
   end

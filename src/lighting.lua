@@ -51,6 +51,7 @@ function LightingRamp:set_lighting_table(t)
 
   local dither_t = (t * len) % 1
   self.dither:set_dither(dither_t)
+  palt(0, true)
 end
 
 function LightingRamp:clear()

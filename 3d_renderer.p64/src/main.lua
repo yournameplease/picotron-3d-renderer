@@ -126,16 +126,44 @@ function _init()
 
   -- diorama
   do
-    scene_builder:add_plane(
-      vec(0, 0, 3),
-      vec(2, 0, 0),
-      vec(0, 0, 2),
-      5
+    -- scene_builder:add_plane(
+    --   vec(0, 0, 3),
+    --   vec(2, 0, 0),
+    --   vec(0, 0, 2),
+    --   16
+    -- )
+    scene_builder:add_cube(
+      vec(0, -1, 3),
+      vec(1, 0, 0),
+      vec(0, 1, 0),
+      vec(0, 0, 1),
+      17
+    )
+    scene_builder:add_cube(
+      vec(-2, -1, 4),
+      vec(1, 0, 0),
+      vec(0, 1, 0),
+      vec(0, 0, 1),
+      17
+    )
+    scene_builder:add_cube(
+      vec(2, -1, 2),
+      vec(1, 0, 0),
+      vec(0, 1, 0),
+      vec(0, 0, 1),
+      17
+    )
+    scene_builder:add_cube(
+      vec(3, -1, 4),
+      vec(1, 0, 0),
+      vec(0, 1, 0),
+      vec(0, 0, 1),
+      17
     )
     
     scene_builder:add_billboard(
-      vec(-3, -4, 5),
-      5
+      vec(-1, 0, 1),
+      0x90000 | 18
     )
   end
   

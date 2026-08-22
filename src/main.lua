@@ -126,12 +126,16 @@ function _init()
 
   -- diorama
   do
-    -- scene_builder:add_plane(
-    --   vec(0, 0, 3),
-    --   vec(2, 0, 0),
-    --   vec(0, 0, 2),
-    --   16
-    -- )
+    for x = -2, 2 do
+      for z = -2, 2 do
+        scene_builder:add_plane(
+          vec(0 + x, 0, 3 + z),
+          vec(1, 0, 0),
+          vec(0, 0, 1),
+          16
+        )
+      end
+    end
     scene_builder:add_cube(
       vec(0, -1, 3),
       vec(1, 0, 0),

@@ -121,10 +121,10 @@ function _init()
   )
  
   for i = 0, 5 do
-    scene_builder:add_billboard(
-      vec(-3, -2+i, 2+i),
-      4
-    )
+    -- scene_builder:add_billboard(
+    --   vec(-3, -2+i, 2+i),
+    --   4
+    -- )
   end
  
 

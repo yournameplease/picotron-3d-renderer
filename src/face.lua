@@ -231,22 +231,26 @@ function Faces:draw_faces(draw_vertices, l)
       -- i think since this is camera space I can just dot with (0, 0, -1) and check if positive?
       local n_dot_camera = -n.z
       if n_dot_camera < 0 then
-        --continue
-      else
+        goto continue
+      end
 
         local points = {
-          [0] = {x = x0, y = y0, w = z0, u = v0_u, v = v0_v},
-          [1] = {x = x1, y = y1, w = z1, u = v1_u, v = v1_v},
-          [2] = {x = x2, y = y2, w = z2, u = v2_u, v = v2_v},
-          [3] = {x = x3, y = y3, w = z3, u = v3_u, v = v3_v},
+          [0] = {x = x0, y = y0, w = z0, u = v0_u * z0, v = v0_v * z0},
+          [1] = {x = x1, y = y1, w = z1, u = v1_u * z1, v = v1_v * z1},
+          [2] = {x = x2, y = y2, w = z2, u = v2_u * z2, v = v2_v * z2},
+          [3] = {x = x3, y = y3, w = z3, u = v3_u * z3, v = v3_v * z3},
         }
 
         local y_min = 1e9
         local y_min_i
+        local y_min_i_left
+        local y_min_i_right
         local y_min_min_x = 1e9
         local y_min_max_x = 1e9
         local y_max = -1e9
         local y_max_i
+        local y_max_i_left
+        local y_max_i_right
     
         for j = 0,3 do
           local y = points[j].y
@@ -259,6 +263,14 @@ function Faces:draw_faces(draw_vertices, l)
             y_max = y
           end
         end
+
+      if y_min > SCREEN_HEIGHT - 1 then
+        goto continue
+      end
+      if y_max < 0 then
+        goto continue
+      end
+        
 
         local left_y
         local right_y
@@ -273,15 +285,19 @@ function Faces:draw_faces(draw_vertices, l)
 
           do
             local q = points[i_prev]
-            local x_int = (q.x - p.x) * (0 - p.y) / (q.y - p.y) + p.x
-            lines_buffer:set(L_X0_COL, 0, x_int)
-            -- todo)) lerp uvw
+            local t = (0 - p.y) / (q.y - p.y)
+            lines_buffer:set(L_X0_COL, 0, t * (q.x - p.x) + p.x)
+            lines_buffer:set(L_U0_COL, 0, t * (q.u - p.u) + p.u)
+            lines_buffer:set(L_V0_COL, 0, t * (q.v - p.v) + p.v)
+            lines_buffer:set(L_W0_COL, 0, t * (q.w - p.w) + p.w)
           end
           do
             local q = points[i_next]
-            local x_int = (q.x - p.x) * (0 - p.y) / (q.y - p.y) + p.x
-            lines_buffer:set(L_X1_COL, 0, x_int)
-            -- todo)) lerp uvw
+            local t = (0 - p.y) / (q.y - p.y)
+            lines_buffer:set(L_X1_COL, 0, t * (q.x - p.x) + p.x)
+            lines_buffer:set(L_U1_COL, 0, t * (q.u - p.u) + p.u)
+            lines_buffer:set(L_V1_COL, 0, t * (q.v - p.v) + p.v)
+            lines_buffer:set(L_W1_COL, 0, t * (q.w - p.w) + p.w)
           end
 
           left_y = 0
@@ -293,10 +309,10 @@ function Faces:draw_faces(draw_vertices, l)
 
           lines_buffer:set(L_X0_COL, left_y, p.x)
           lines_buffer:set(L_X1_COL, right_y, p.x)
-          lines_buffer:set(L_U0_COL, left_y, p.u * p.w)
-          lines_buffer:set(L_V0_COL, left_y, p.v * p.w)
-          lines_buffer:set(L_U1_COL, right_y, p.u * p.w)
-          lines_buffer:set(L_V1_COL, right_y, p.v * p.w)
+          lines_buffer:set(L_U0_COL, left_y, p.u)
+          lines_buffer:set(L_V0_COL, left_y, p.v)
+          lines_buffer:set(L_U1_COL, right_y, p.u)
+          lines_buffer:set(L_V1_COL, right_y, p.v)
           lines_buffer:set(L_W0_COL, left_y, p.w)
           lines_buffer:set(L_W1_COL, right_y, p.w)
         end
@@ -308,16 +324,20 @@ function Faces:draw_faces(draw_vertices, l)
           local p = points[y_max_i]
 
           do
-            local q = points[i_prev]
-            local x_int = (q.x - p.x) * (SCREEN_HEIGHT - 1 - p.y) / (q.y - p.y) + p.x
-            lines_buffer:set(L_X0_COL, SCREEN_HEIGHT - 1, x_int)
-            -- todo)) lerp uvw
+            local q = points[i_next]
+            local t = (SCREEN_HEIGHT - 1 - p.y) / (q.y - p.y)
+            lines_buffer:set(L_X0_COL, SCREEN_HEIGHT - 1, t * (q.x - p.x) + p.x)
+            lines_buffer:set(L_U0_COL, SCREEN_HEIGHT - 1, t * (q.u - p.u) + p.u)
+            lines_buffer:set(L_V0_COL, SCREEN_HEIGHT - 1, t * (q.v - p.v) + p.v)
+            lines_buffer:set(L_W0_COL, SCREEN_HEIGHT - 1, t * (q.w - p.w) + p.w)
           end
           do
-            local q = points[i_next]
-            local x_int = (q.x - p.x) * (SCREEN_HEIGHT - 1 - p.y) / (q.y - p.y) + p.x
-            lines_buffer:set(L_X1_COL, SCREEN_HEIGHT - 1, x_int)
-            -- todo)) lerp uvw
+            local q = points[i_prev]
+            local t = (SCREEN_HEIGHT - 1 - p.y) / (q.y - p.y)
+            lines_buffer:set(L_X1_COL, SCREEN_HEIGHT - 1, t * (q.x - p.x) + p.x)
+            lines_buffer:set(L_U1_COL, SCREEN_HEIGHT - 1, t * (q.u - p.u) + p.u)
+            lines_buffer:set(L_V1_COL, SCREEN_HEIGHT - 1, t * (q.v - p.v) + p.v)
+            lines_buffer:set(L_W1_COL, SCREEN_HEIGHT - 1, t * (q.w - p.w) + p.w)
           end
 
           left_y_final = SCREEN_HEIGHT - 1
@@ -329,10 +349,10 @@ function Faces:draw_faces(draw_vertices, l)
 
           lines_buffer:set(L_X0_COL, left_y_final, p.x)
           lines_buffer:set(L_X1_COL, right_y_final, p.x)
-          lines_buffer:set(L_U0_COL, left_y_final, p.u * p.w)
-          lines_buffer:set(L_V0_COL, left_y_final, p.v * p.w)
-          lines_buffer:set(L_U1_COL, right_y_final, p.u * p.w)
-          lines_buffer:set(L_V1_COL, right_y_final, p.v * p.w)
+          lines_buffer:set(L_U0_COL, left_y_final, p.u)
+          lines_buffer:set(L_V0_COL, left_y_final, p.v)
+          lines_buffer:set(L_U1_COL, right_y_final, p.u)
+          lines_buffer:set(L_V1_COL, right_y_final, p.v)
           lines_buffer:set(L_W0_COL, left_y_final, p.w)
           lines_buffer:set(L_W1_COL, right_y_final, p.w)
         end
@@ -357,8 +377,8 @@ function Faces:draw_faces(draw_vertices, l)
               local left_y_next = flr(points[j].y)
               local len = left_y_next - left_y
               lines_buffer:set(L_X0_COL, left_y_next, points[j].x)
-              lines_buffer:set(L_U0_COL, left_y_next, points[j].u * points[j].w)
-              lines_buffer:set(L_V0_COL, left_y_next, points[j].v * points[j].w)
+              lines_buffer:set(L_U0_COL, left_y_next, points[j].u)
+              lines_buffer:set(L_V0_COL, left_y_next, points[j].v)
               lines_buffer:set(L_W0_COL, left_y_next, points[j].w)
               lines_buffer:lerp(left_y * L_LEN + L_X0_COL, len, L_LEN, 1)
               lines_buffer:lerp(left_y * L_LEN + L_U0_COL, len, L_LEN, 1)
@@ -386,8 +406,8 @@ function Faces:draw_faces(draw_vertices, l)
               local right_y_next = flr(points[j].y)
               local len = right_y_next - right_y
               lines_buffer:set(L_X1_COL, right_y_next, points[j].x)
-              lines_buffer:set(L_U1_COL, right_y_next, points[j].u * points[j].w)
-              lines_buffer:set(L_V1_COL, right_y_next, points[j].v * points[j].w)
+              lines_buffer:set(L_U1_COL, right_y_next, points[j].u)
+              lines_buffer:set(L_V1_COL, right_y_next, points[j].v)
               lines_buffer:set(L_W1_COL, right_y_next, points[j].w)
               lines_buffer:lerp(right_y * L_LEN + L_X1_COL, len, L_LEN, 1)
               lines_buffer:lerp(right_y * L_LEN + L_U1_COL, len, L_LEN, 1)
@@ -431,7 +451,7 @@ function Faces:draw_faces(draw_vertices, l)
        
         drawn = drawn + 1
       end
-    end
+    ::continue::
   end
 
   return drawn

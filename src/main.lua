@@ -89,6 +89,7 @@ function _init()
 
   -- local GRID_S = 6
   local GRID_S = 3
+  -- local GRID_S = 1
 
   local scene_builder = scene.builder()
   

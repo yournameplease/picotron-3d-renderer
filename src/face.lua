@@ -243,14 +243,10 @@ function Faces:draw_faces(draw_vertices, l)
 
         local y_min = 1e9
         local y_min_i
-        local y_min_i_left
-        local y_min_i_right
         local y_min_min_x = 1e9
         local y_min_max_x = 1e9
         local y_max = -1e9
         local y_max_i
-        local y_max_i_left
-        local y_max_i_right
     
         for j = 0,3 do
           local y = points[j].y
@@ -271,6 +267,10 @@ function Faces:draw_faces(draw_vertices, l)
         goto continue
       end
         
+        local y_min_i_left = y_min_i 
+        local y_min_i_right = y_min_i 
+        local y_max_i_left = y_max_i
+        local y_max_i_right = y_max_i
 
         local left_y
         local right_y
@@ -278,12 +278,17 @@ function Faces:draw_faces(draw_vertices, l)
         local right_y_final = 0
 
         if y_min < 0 then
-          local i_next = (y_min_i + 1) % 4
-          local i_prev = (y_min_i + 3) % 4
-
-          local p = points[y_min_i]
+          while points[(y_min_i_left + 3) % 4].y < 0 do
+             y_min_i_left = (y_min_i_left + 3) % 4
+          end
+          while points[(y_min_i_right + 1) % 4].y < 0 do
+             y_min_i_right = (y_min_i_right + 1) % 4
+          end
+          local i_next = (y_min_i_right + 1) % 4
+          local i_prev = (y_min_i_left + 3) % 4
 
           do
+            local p = points[y_min_i_left]
             local q = points[i_prev]
             local t = (0 - p.y) / (q.y - p.y)
             lines_buffer:set(L_X0_COL, 0, t * (q.x - p.x) + p.x)
@@ -292,6 +297,7 @@ function Faces:draw_faces(draw_vertices, l)
             lines_buffer:set(L_W0_COL, 0, t * (q.w - p.w) + p.w)
           end
           do
+            local p = points[y_min_i_right]
             local q = points[i_next]
             local t = (0 - p.y) / (q.y - p.y)
             lines_buffer:set(L_X1_COL, 0, t * (q.x - p.x) + p.x)
@@ -318,12 +324,17 @@ function Faces:draw_faces(draw_vertices, l)
         end
 
         if y_max > SCREEN_HEIGHT - 1  then
-          local i_next = (y_max_i + 1) % 4
-          local i_prev = (y_max_i + 3) % 4
-
-          local p = points[y_max_i]
+          while points[(y_max_i_left + 1) % 4].y > SCREEN_HEIGHT - 1 do
+             y_max_i_left = (y_max_i_left + 1) % 4
+          end
+          while points[(y_max_i_right + 3) % 4].y > SCREEN_HEIGHT - 1 do
+             y_max_i_right = (y_max_i_right + 3) % 4
+          end
+          local i_next = (y_max_i_left + 1) % 4
+          local i_prev = (y_max_i_right + 3) % 4
 
           do
+            local p = points[y_max_i_left]
             local q = points[i_next]
             local t = (SCREEN_HEIGHT - 1 - p.y) / (q.y - p.y)
             lines_buffer:set(L_X0_COL, SCREEN_HEIGHT - 1, t * (q.x - p.x) + p.x)
@@ -332,6 +343,7 @@ function Faces:draw_faces(draw_vertices, l)
             lines_buffer:set(L_W0_COL, SCREEN_HEIGHT - 1, t * (q.w - p.w) + p.w)
           end
           do
+            local p = points[y_max_i_right]
             local q = points[i_prev]
             local t = (SCREEN_HEIGHT - 1 - p.y) / (q.y - p.y)
             lines_buffer:set(L_X1_COL, SCREEN_HEIGHT - 1, t * (q.x - p.x) + p.x)
@@ -363,10 +375,10 @@ function Faces:draw_faces(draw_vertices, l)
         -- fill left endpoints
         -- go ccw until reached max point
         do
-          local j = y_min_i
+          local j = y_min_i_left
           while true do
             j = (j + 3) % 4
-            if j == y_max_i then
+            if j == y_max_i_left then
               local len = left_y_final - left_y
               lines_buffer:lerp(left_y * L_LEN + L_X0_COL, len, L_LEN, 1)
               lines_buffer:lerp(left_y * L_LEN + L_U0_COL, len, L_LEN, 1)
@@ -392,10 +404,10 @@ function Faces:draw_faces(draw_vertices, l)
         -- fill right endpoints
         -- go cw until reached max point
         do
-          local j = y_min_i
+          local j = y_min_i_right
           while true do
             j = (j + 1) % 4
-            if j == y_max_i then
+            if j == y_max_i_right then
               local len = right_y_final - right_y
               lines_buffer:lerp(right_y * L_LEN + L_X1_COL, len, L_LEN, 1)
               lines_buffer:lerp(right_y * L_LEN + L_U1_COL, len, L_LEN, 1)

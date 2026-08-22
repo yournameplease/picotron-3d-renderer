@@ -87,84 +87,87 @@ function _init()
   local j_hat = vec(0, 1, 0)
   local k_hat = vec(0, 0, 1)
 
-  -- local GRID_S = 6
-  local GRID_S = 3
+  local GRID_S = 6
   -- local GRID_S = 1
 
   local scene_builder = scene.builder()
   
   -- test scene
-  -- do
-  --   for l = 0, GRID_S-1 do
-  --     for m = 0, GRID_S-1 do
-  --       local s = (l*GRID_S+m)%4+1
-  --       scene_builder:add_cube(o + vec(3*l, 0, 3*m), i_hat * (1 + l/GRID_S), j_hat, k_hat * (1 + m/GRID_S), s)
-  --     end
-  --   end
+  do
+    for l = 0, GRID_S-1 do
+      for m = 0, GRID_S-1 do
+        local s = (l*GRID_S+m)%4+1
+        scene_builder:add_cube(o + vec(3*l, 0, 3*m), i_hat * (1 + l/GRID_S), j_hat, k_hat * (1 + m/GRID_S), s)
+      end
+    end
 
-  --   -- scene_builder:add_sphere(
-  --   --   vec(15, 5, 25),
-  --   --   10,
-  --   --   20,
-  --   --   10,
-  --   --   2
-  --   -- )
+    -- scene_builder:add_sphere(
+    --   vec(15, 5, 25),
+    --   10,
+    --   20,
+    --   10,
+    --   2
+    -- )
   
-  --   scene_builder:add_sphere(
-  --     vec(3, 5, 15),
-  --     2,
-  --     8,
-  --     4,
-  --     2
-  --   )
+    -- scene_builder:add_sphere(
+    --   vec(3, 5, 15),
+    --   2,
+    --   8,
+    --   4,
+    --   2
+    -- )
 
-  --   scene_builder:add_billboard(
-  --     vec(-3, -4, 5),
-  --     5
-  --   )
-  -- end
+    scene_builder:add_billboard(
+      vec(-3, -4, 5),
+      5
+    )
+  end
 
   -- diorama
   do
-    -- scene_builder:add_plane(
-    --   vec(0, 0, 3),
-    --   vec(2, 0, 0),
-    --   vec(0, 0, 2),
-    --   16
+    -- for x = -2, 2 do
+    --   for z = -2, 2 do
+    --     scene_builder:add_plane(
+    --       vec(0 + x, 0, 3 + z),
+    --       vec(1, 0, 0),
+    --       vec(0, 0, 1),
+    --       16
+    --     )
+    --   end
+    -- end
+    -- scene_builder:add_cube(
+    --   vec(0, -1, 3),
+    --   vec(1, 0, 0),
+    --   vec(0, 1, 0),
+    --   vec(0, 0, 1),
+    --   17
     -- )
-    scene_builder:add_cube(
-      vec(0, -1, 3),
-      vec(1, 0, 0),
-      vec(0, 1, 0),
-      vec(0, 0, 1),
-      17
-    )
-    scene_builder:add_cube(
-      vec(-2, -1, 4),
-      vec(1, 0, 0),
-      vec(0, 1, 0),
-      vec(0, 0, 1),
-      17
-    )
-    scene_builder:add_cube(
-      vec(2, -1, 2),
-      vec(1, 0, 0),
-      vec(0, 1, 0),
-      vec(0, 0, 1),
-      17
-    )
-    scene_builder:add_cube(
-      vec(3, -1, 4),
-      vec(1, 0, 0),
-      vec(0, 1, 0),
-      vec(0, 0, 1),
-      17
-    )
+    -- scene_builder:add_cube(
+    --   vec(-2, -1, 4),
+    --   vec(1, 0, 0),
+    --   vec(0, 1, 0),
+    --   vec(0, 0, 1),
+    --   17
+    -- )
+    -- scene_builder:add_cube(
+    --   vec(2, -1, 2),
+    --   vec(1, 0, 0),
+    --   vec(0, 1, 0),
+    --   vec(0, 0, 1),
+    --   17
+    -- )
+    -- scene_builder:add_cube(
+    --   vec(3, -1, 4),
+    --   vec(1, 0, 0),
+    --   vec(0, 1, 0),
+    --   vec(0, 0, 1),
+    --   17
+    -- )
     
-    scene_builder:add_billboard(
-      vec(-1, 0, 1),
-      0x90000 | 18
-    )
+    -- scene_builder:add_billboard(
+    --   vec(-1, 0, 1),
+    --   0x90000 | 18
+    -- )
   end
   
 

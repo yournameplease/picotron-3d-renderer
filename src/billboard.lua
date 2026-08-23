@@ -76,6 +76,8 @@ function Billboards:add(billboard)
 end
 
 function Billboards:draw(vertices)
+  if self.length == 0 then return end
+
   -- self.to_draw:copy(self.data, true, B_S_COL, D_S_COL, 1, B_LEN, D_LEN, self.length)
   vertices.data:take(self.data:mul(4), self.to_draw, B_V_COL, D_DX_COL, 3, 4, D_LEN, self.length)
   self.to_draw:copy(0, true, B_S_COL, D_SX_COL, 1, D_LEN, D_LEN, self.length)

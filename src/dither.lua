@@ -68,7 +68,7 @@ function dither.new_bayer()
     if i == 2 or i == 1 then return 1 else return 0 end
   end
   function y_step(i)
-    if i == 2 or i == 3 then return 1 else return 0 end
+    if i == 1 or i == 3 then return 1 else return 0 end
   end
   
   for i = 0, 3 do

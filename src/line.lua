@@ -65,7 +65,6 @@ function Lines:draw(draw_vertices)
   draw_vertices.data:take(self.data:mul(4), self.to_draw, L_V0_COL, D_X0_COL, 2, L_LEN, D_LEN, self.length)
   draw_vertices.data:take(self.data:mul(4), self.to_draw, L_V1_COL, D_X1_COL, 2, L_LEN, D_LEN, self.length)
 
-  ud_util.debug(self.to_draw)
   line(self.to_draw, 0, self.length, D_ARGS, D_LEN)
 end
 

@@ -33,15 +33,11 @@ function stage.new(m, w, h, d)
 
   local scene_builder = scene.builder()
     
-    scene_builder:add_billboard(
-      vec(-3, -4, 5),
-      5
-    )
   local getm = function(x, y, z)
     if x < 0 or y < 0 or z < 0 then return 0 end
     if x >= w or y >= h or z >=d then return 0 end
     
-    return m:get(x + y * w, d-z) or 0
+    return m:get(x + y * w, d-1-z) or 0
   end
   
   for x = 0, w-1 do
@@ -49,8 +45,8 @@ function stage.new(m, w, h, d)
     for y = 0, h-1 do
       self.tiles[x][y] = {}
       for z = 0, d-1 do
-              printh("doing it "..x .. "," .. y .. "," .. z)
         local tile = getm(x, y, z)
+        printh("TILE:"..x .. "," .. y .. "," .. z .. ": ".. tile)
         
         self.tiles[x][y][z] = fget(tile)
 
@@ -97,7 +93,7 @@ function stage.new(m, w, h, d)
   self.scene = scene_builder:build()
 
   self.camera = {
-    pos = vec(0, 2, -d * 1.5),
+    pos = vec(0, 1, -d * 1.5),
     -- pitch = 0, roll = 0, yaw = 0.25
     pitch = -0.2, roll = 0, yaw = -math.pi / 4
   }

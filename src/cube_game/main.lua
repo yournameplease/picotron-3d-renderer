@@ -14,7 +14,7 @@ function cube_game.update()
 end
 
 function cube_game.draw()
-  cls(0)
+  cls(21)
 
   -- game.stage.scene:draw(true)
   game.stage.scene:draw()

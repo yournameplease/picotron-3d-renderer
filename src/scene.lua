@@ -9,6 +9,32 @@ local lighting = require("src.lighting")
 local BUFFER_MAX = 1024
 local buf = userdata("f64", BUFFER_MAX)
 
+COLOR_TABLE_ADDRS = {
+  [0] = 0x8000,
+  0x9000,
+  0xA000,
+  0xB000,
+}
+
+function apply_color_table(color_table_sprite, idx)
+  idx = idx or 0
+	local sprite=get_spr(color_table_sprite)
+	--copy the sprite into the address 0x8000 in memory
+	memmap(sprite,COLOR_TABLE_ADDRS[idx])
+	--poke the bit that makes it work for shapes(circ,rect etc.), the bit for sprites
+	--is already set by default.
+	poke(0x550b,0x3f)
+	--the color table got copied and will be used. This is the same color table 
+	--that pal() modifies.
+end
+
+function apply_color_tables()
+  apply_color_table(8, 0)
+  -- apply_color_table(8, 1)
+  apply_color_table(10, 2)
+  -- apply_color_table(10, 3)
+end
+
 ---@param v Vertex
 ---@return Vertex
 function vector_normalize(v)
@@ -121,6 +147,8 @@ end
 ---@return Scene
 function SceneBuilder.build(builder)
   local self = setmetatable({}, Scene)
+
+  apply_color_tables()
 
   self.vertices = vertices.of(builder.vertices)
   self.faces = faces.of(builder.faces, builder.vertices)

@@ -163,7 +163,8 @@ end
 
 ---@param draw_vertices Vertices
 ---@param l Vertex vector, really
-function Faces:draw_faces(draw_vertices, l)
+---@param lighting LightingRamp
+function Faces:draw_faces(draw_vertices, l, lighting)
   -- z-ordering
   -- todo: is sorting by centroid right?  may be a smarter way  
   profile("face_setup")
@@ -447,7 +448,7 @@ function Faces:draw_faces(draw_vertices, l)
       -- ambient = 0.1
       -- 0.1 reserved for specular, if I get to it...
       n_dot_l = n_dot_l * 0.8 + 0.1
-      lighting_ramp:set_lighting_table(n_dot_l)
+      lighting:set_lighting_table(n_dot_l)
 
       -- color(0xC000)
       -- lines_buffer:add(0xc0, true, L_X0_COL, L_X0_COL, 4, L_LEN, L_LEN, SCREEN_HEIGHT)
@@ -455,7 +456,7 @@ function Faces:draw_faces(draw_vertices, l)
       
       tline3d(lines_buffer, L_LEN * y_min, len, 12, L_LEN)    
 
-      lighting_ramp:clear()
+      lighting:clear()
       profile("face_texture")
      
       drawn = drawn + 1

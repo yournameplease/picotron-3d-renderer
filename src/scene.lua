@@ -5,6 +5,19 @@ local ud_util = require("src.userdata")
 local dither = require("src.dither")
 local lighting = require("src.lighting")
 
+local BUFFER_MAX = 1024
+local buf = userdata("f64", BUFFER_MAX)
+
+---@param v Vertex
+---@return Vertex
+function vector_normalize(v)
+  local mag = v:dot(v) ^ 0.5
+  if mag < EPSILON then
+    return vec(0, 0, 0)
+  end
+  return vec(v.x / mag, v.y / mag, v.z / mag)
+end
+
 ---@class Camera
 ---@field pos Vertex
 ---@field pitch number
@@ -27,10 +40,11 @@ SceneBuilder.__index = SceneBuilder
 ---@field cam_to_screen userdata
 ---@field world_to_screen userdata
 ---@field camera Camera
+---@field lighting LightingRamp
 local Scene = {}
 Scene.__index = Scene
 
-function Scene:draw()
+function Scene:draw(debug)
   profile("draw_setup")
   local light = vector_normalize(vec(cos(1 / 20), -2, sin(0.2 + 1 / 20)))
   
@@ -40,7 +54,7 @@ function Scene:draw()
   self.world_to_cam:set(0, 0,
     math.cos(b)*math.cos(g), -math.cos(b)*math.sin(g), math.sin(b), -self.camera.pos.x, -- magic minus sign :O
     math.cos(a)*math.sin(g)+math.sin(a)*math.sin(b)*math.cos(g), math.cos(a)*math.cos(g)-math.sin(a)*math.sin(b)*math.sin(g), -math.sin(a)*math.cos(b), self.camera.pos.y,
-    math.sin(a)*math.sin(g)-math.cos(a)*math.sin(b)*math.cos(g), math.sin(a)*math.cos(g)+math.cos(a)*math.sin(b)*math.sin(g), math.cos(a)*math.cos(b), self.camera.pos.z,
+    math.sin(a)*math.sin(g)-math.cos(a)*math.sin(b)*math.cos(g), math.sin(a)*math.cos(g)+math.cos(a)*math.sin(b)*math.sin(g), math.cos(a)*math.cos(b), -self.camera.pos.z,
     0, 0, 0, 1
   )
   self.world_to_cam:transpose(true)
@@ -60,18 +74,21 @@ function Scene:draw()
   profile("transform_vertices")
 
   profile("draw_faces")
-  local faces_drawn = self.faces:draw_faces(self.vertices_screen, light)
+  local faces_drawn = self.faces:draw_faces(self.vertices_screen, light, self.lighting)
   profile("draw_faces")
 
   profile("draw_billboards")
   self.billboards:draw(self.vertices_screen)
   profile("draw_billboards")
 
-  -- color(7)
-  -- f:draw_wireframes(v_cam, buf)
+
+  if debug then
+    color(7)
+    self.faces:draw_wireframes(self.vertices_screen, buf)
   
-  -- color(8)
-  -- pset(v_cam.data, 0, v_cam.length, 2, 4)
+    color(8)
+    pset(self.vertices_screen.data, 0, self.vertices_screen.length, 2, 4)
+  end
 
   print("CPU: " .. stat(1), 400, 3, 7)
   print("MEM: " .. stat(0))
@@ -114,6 +131,8 @@ function SceneBuilder.build(builder)
   )
   self.world_to_screen = userdata("f64", 4, 4)
   
+  self.lighting = lighting.new()
+
   return self
 end
  
@@ -124,6 +143,15 @@ function SceneBuilder:add_billboard(p, s)
     s = s,
     v = v_start,
   })
+end
+
+function SceneBuilder:add_axes(p)
+  add(self.vertices, p)
+  -- lazy, this is not colored so i use length
+  -- only visible in debug as points
+  add(self.vertices, p + vec(1, 0, 0))
+  add(self.vertices, p + vec(0, 2, 0))
+  add(self.vertices, p + vec(0, 0, 3))
 end
   
 function SceneBuilder:add_plane(o, i_hat, j_hat, s)

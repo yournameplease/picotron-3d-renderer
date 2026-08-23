@@ -20,12 +20,12 @@ SceneBuilder.__index = SceneBuilder
 
 ---@class Scene
 ---@field vertices Vertices
----@field vertices_cam Vertices
+---@field vertices_screen Vertices
 ---@field faces Faces
 ---@field billboards Billboards
 ---@field world_to_cam userdata
 ---@field cam_to_screen userdata
----@field proj userdata
+---@field world_to_screen userdata
 ---@field camera Camera
 local Scene = {}
 Scene.__index = Scene
@@ -37,33 +37,34 @@ function Scene:draw()
   local a = self.camera.yaw
   local b = self.camera.pitch
   local g = self.camera.roll
-  world_to_cam:set(0, 0,
+  self.world_to_cam:set(0, 0,
     math.cos(b)*math.cos(g), -math.cos(b)*math.sin(g), math.sin(b), -self.camera.pos.x, -- magic minus sign :O
     math.cos(a)*math.sin(g)+math.sin(a)*math.sin(b)*math.cos(g), math.cos(a)*math.cos(g)-math.sin(a)*math.sin(b)*math.sin(g), -math.sin(a)*math.cos(b), self.camera.pos.y,
     math.sin(a)*math.sin(g)-math.cos(a)*math.sin(b)*math.cos(g), math.sin(a)*math.cos(g)+math.cos(a)*math.sin(b)*math.sin(g), math.cos(a)*math.cos(b), self.camera.pos.z,
     0, 0, 0, 1
   )
-  world_to_cam:transpose(true)
+  self.world_to_cam:transpose(true)
+
+  self.world_to_cam:matmul(self.cam_to_screen, self.world_to_screen)
 
   profile("draw_setup")
   profile("transform_vertices")
   color(5)
-  v:transform(v_proj.data, world_to_cam)
+  self.vertices:transform(self.vertices_screen.data, self.world_to_screen)
 
-  v_proj:transform(v_cam.data, cam_to_screen)
-  v_cam.data.div(1, v_cam.data, v_cam.data, 2, 2, 1, 4, 4, v_proj.length)
-  -- v_cam.data:div(v_cam.data, true, 3, 2, 1, 4, 4, v_proj.length)
-  v_cam.data:mul(v_cam.data, true, 2, 0, 1, 4, 4, v_proj.length)
-  v_cam.data:mul(v_cam.data, true, 2, 1, 1, 4, 4, v_proj.length)
+  self.vertices_screen.data.div(1, self.vertices_screen.data, self.vertices_screen.data, 2, 2, 1, 4, 4, self.vertices_screen.length)
+  -- self.vertices_screen.data:div(self.vertices_screen.data, true, 3, 2, 1, 4, 4, v_proj.length)
+  self.vertices_screen.data:mul(self.vertices_screen.data, true, 2, 0, 1, 4, 4, self.vertices_screen.length)
+  self.vertices_screen.data:mul(self.vertices_screen.data, true, 2, 1, 1, 4, 4, self.vertices_screen.length)
 
   profile("transform_vertices")
 
   profile("draw_faces")
-  local faces_drawn = f:draw_faces(v_cam, light)
+  local faces_drawn = self.faces:draw_faces(self.vertices_screen, light)
   profile("draw_faces")
 
   profile("draw_billboards")
-  bb:draw(v_cam)
+  self.billboards:draw(self.vertices_screen)
   profile("draw_billboards")
 
   -- color(7)
@@ -75,8 +76,8 @@ function Scene:draw()
   print("CPU: " .. stat(1), 400, 3, 7)
   color(6)
   print("CAM: " .. self.camera.pos.x .. "," .. self.camera.pos.y .. "," .. self.camera.pos.z)
-  print("VERTICES: " .. v.length)
-  print("FACES: " .. faces_drawn .."/".. f.length)
+  print("VERTICES: " .. self.vertices.length)
+  print("FACES: " .. faces_drawn .."/".. self.faces.length)
 
   color(6)
 end
@@ -99,7 +100,7 @@ function SceneBuilder.build(builder)
   self.faces = faces.of(builder.faces, builder.vertices)
   self.billboards = billboards.of(builder.billboards)
 
-  self.vertices_cam = vertices.of(builder.vertices)
+  self.vertices_screen = vertices.of(builder.vertices)
 
   self.world_to_cam = userdata("f64", 4, 4)
   self.cam_to_screen = userdata("f64", 4, 4)
@@ -109,7 +110,7 @@ function SceneBuilder.build(builder)
     U_0, V_0, 1, 0,
     0, 0, 0, 1
   )
-  self.proj = userdata("f64", 4, 4)
+  self.world_to_screen = userdata("f64", 4, 4)
   
   return self
 end

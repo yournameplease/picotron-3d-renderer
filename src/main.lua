@@ -161,36 +161,9 @@ function _init()
     --   0x90000 | 18
     -- )
   end
-  
-
-  world_to_cam = userdata("f64", 4, 4)
-  world_to_cam:set(0, 0,
-    1, 0, 0, 0,
-    0, 1, 0, 0,
-    0, 0, 1, 0,
-    camera.x, camera.y, camera.z, 1
-  )
-
-  cam_to_screen = userdata("f64", 4, 4)
-  cam_to_screen:set(0, 0,
-    ALPHA_U, 0, U_0, 0,
-    0, ALPHA_V, V_0, 0,
-    0, 0, 1, 0,
-    0, 0, 0, 1
-  )
-  cam_to_screen:transpose(true)
-
-  
-  v = vertices.of(scene_builder.vertices)
-  v_proj = vertices.of(scene_builder.vertices)
-  v_cam = vertices.of(scene_builder.vertices)
-
+   
 
   light = vector_normalize(light)
-  printh(light.x .. light.y .. light.z)
-
-  f = faces.of(scene_builder.faces, scene_builder.vertices)
-  bb = billboards.of(scene_builder.billboards)
 
   apply_color_table(8, 0)
   -- apply_color_table(8, 1)

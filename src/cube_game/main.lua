@@ -5,6 +5,7 @@ local cube_game = {}
 
 function cube_game.init()
   local layers = fetch(DATP.."map/world_1.map")
+  -- local layers = fetch(DATP.."map/test.map")
   game.stage = stage.new(layers[1].bmp, 5, 5, 5)
 end
 
@@ -15,7 +16,8 @@ end
 function cube_game.draw()
   cls(0)
 
-  game.stage.scene:draw(true)
+  -- game.stage.scene:draw(true)
+  game.stage.scene:draw()
 end
 
 return cube_game

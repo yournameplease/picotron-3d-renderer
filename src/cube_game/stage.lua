@@ -23,7 +23,7 @@ Stage.__index = Stage
 local stage = {}
 
 function stage.new(m, w, h, d)
-  local origin = vec(0, -h / 2,  d/2)
+  local origin = vec(-w / 2, -h / 2,  -d/2)
 
   
   local self = setmetatable({
@@ -38,7 +38,10 @@ function stage.new(m, w, h, d)
       5
     )
   local getm = function(x, y, z)
-    return m:get(x + y * w, z) or 0
+    if x < 0 or y < 0 or z < 0 then return 0 end
+    if x >= w or y >= h or z >=d then return 0 end
+    
+    return m:get(x + y * w, d-z) or 0
   end
   
   for x = 0, w-1 do
@@ -46,55 +49,62 @@ function stage.new(m, w, h, d)
     for y = 0, h-1 do
       self.tiles[x][y] = {}
       for z = 0, d-1 do
+              printh("doing it "..x .. "," .. y .. "," .. z)
         local tile = getm(x, y, z)
         
         self.tiles[x][y][z] = fget(tile)
 
-        for x_step = -1, 1, 2 do
-          local neighbor = getm(x+x_step, y, z)
-          if neighbor == 0 and not fget(neighbor, 0) then
-            local o = origin + vec(x + 0.5 * x_step, y + 0.5 * x_step, z + 0.5 * x_step)
-            local i_hat = vec(0, x_step, 0)
-            local j_hat = vec(0, 0, x_step)
-            scene_builder:add_plane(o, i_hat, j_hat, tile)
+        if tile ~= 0 then
+          for x_step = -1, 1, 2 do
+            local neighbor = getm(x+x_step, y, z)
+            if neighbor == 0 or not fget(neighbor, 0) then
+              printh("got it "..x .. "," .. y .. "," .. z .. "," .. x_step)
+              local offset = (x_step + 1) / 2
+              local o = origin + vec(x + offset, y, z)
+              local i_hat = offset == 0 and vec(0, 1, 0) or vec(0, 0, 1)
+              local j_hat = offset == 0 and vec(0, 0, 1) or vec(0, 1, 0)
+              scene_builder:add_plane(o, i_hat, j_hat, tile)
+            end
           end
-        end
-        for y_step = -1, 1, 2 do
-          local neighbor = getm(x, y+y_step, z)
-          if neighbor == 0 and not fget(neighbor, 0) then
-            local o = origin + vec(x + 0.5 * y_step, y + 0.5 * y_step, z + 0.5 * y_step)
-            local i_hat = vec(y_step, 0, 0)
-            local j_hat = vec(0, 0, y_step)
-            scene_builder:add_plane(o, i_hat, j_hat, tile)
+          for y_step = -1, 1, 2 do
+            local neighbor = getm(x, y+y_step, z)
+            if neighbor == 0 or not fget(neighbor, 0) then
+              local offset = (y_step + 1) / 2
+              local o = origin + vec(x, y + offset, z)
+              local i_hat = offset == 0 and vec(0, 0, 1) or vec(1, 0, 0)
+              local j_hat = offset == 0 and vec(1, 0, 0) or vec(0, 0, 1)
+              scene_builder:add_plane(o, i_hat, j_hat, tile)
+            end
           end
-        end
-        for z_step = -1, 1, 2 do
-          local neighbor = getm(x, y, z+z_step)
-          if neighbor == 0 and not fget(neighbor, 0) then
-            local o = origin + vec(x + 0.5 * z_step, y + 0.5 * z_step, z + 0.5 * z_step)
-            local i_hat = vec(z_step, 0, 0)
-            local j_hat = vec(0, z_step, 0)
-            scene_builder:add_plane(o, i_hat, j_hat, tile)
+          for z_step = -1, 1, 2 do
+            local neighbor = getm(x, y, z+z_step)
+            if neighbor == 0 or not fget(neighbor, 0) then
+              local offset = (z_step + 1) / 2
+              local o = origin + vec(x, y, z + offset)
+              local i_hat = offset == 0 and vec(1, 0, 0) or vec(0, 1, 0)
+              local j_hat = offset == 0 and vec(0, 1, 0) or vec(1, 0, 0)
+              scene_builder:add_plane(o, i_hat, j_hat, tile)
+            end
           end
         end
       end
     end
-
-    scene_builder:add_axes(vec(0, 0, 0))
-    -- scene_builder:add_axes(origin)
-    self.scene = scene_builder:build()
-
-    self.camera = {
-      pos = vec(0, 5, -5),
-      -- pitch = 0, roll = 0, yaw = 0.25
-      pitch = -0.2, roll = 0, yaw = 0
-    }
-    self.scene.camera = self.camera
-    
-
-    return self
   end
 
+
+  scene_builder:add_axes(vec(0, 0, 0))
+  -- scene_builder:add_axes(origin)
+  self.scene = scene_builder:build()
+
+  self.camera = {
+    pos = vec(0, 2, -d * 1.5),
+    -- pitch = 0, roll = 0, yaw = 0.25
+    pitch = -0.2, roll = 0, yaw = -math.pi / 4
+  }
+  self.scene.camera = self.camera
+  
+
+  return self
     
 end
 

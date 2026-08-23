@@ -38,7 +38,7 @@ function stage.new(m, w, h, d)
       5
     )
   local getm = function(x, y, z)
-    return m:get(x + y * w, z)
+    return m:get(x + y * w, z) or 0
   end
   
   for x = 0, w-1 do
@@ -81,13 +81,13 @@ function stage.new(m, w, h, d)
     end
 
     scene_builder:add_axes(vec(0, 0, 0))
-    scene_builder:add_axes(origin)
+    -- scene_builder:add_axes(origin)
     self.scene = scene_builder:build()
 
     self.camera = {
-      pos = vec(0, 4, -5),
+      pos = vec(0, 5, -5),
       -- pitch = 0, roll = 0, yaw = 0.25
-      pitch = -0.1, roll = -math.pi / 2, yaw = 0
+      pitch = -0.2, roll = 0, yaw = 0
     }
     self.scene.camera = self.camera
     

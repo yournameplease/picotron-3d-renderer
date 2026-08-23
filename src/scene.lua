@@ -1,4 +1,5 @@
 local faces = require("src.face")
+local lines = require("src.line")
 local vertices = require("src.vertex")
 local billboards = require("src.billboard")
 local ud_util = require("src.userdata")
@@ -27,6 +28,7 @@ end
 ---@class SceneBuilder
 ---@field vertices Vertex[]
 ---@field faces Face[]
+---@field lines Line[]
 ---@field billboards Billboard[]
 local SceneBuilder = {}
 SceneBuilder.__index = SceneBuilder
@@ -34,6 +36,7 @@ SceneBuilder.__index = SceneBuilder
 ---@class Scene
 ---@field vertices Vertices
 ---@field vertices_screen Vertices
+---@field lines Lines
 ---@field faces Faces
 ---@field billboards Billboards
 ---@field world_to_cam userdata
@@ -48,12 +51,12 @@ function Scene:draw(debug)
   profile("draw_setup")
   local light = vector_normalize(vec(cos(1 / 20), -2, sin(0.2 + 1 / 20)))
   
-  local a = self.camera.yaw
-  local b = self.camera.pitch
+  local a = self.camera.pitch
+  local b = self.camera.yaw
   local g = self.camera.roll
   self.world_to_cam:set(0, 0,
     math.cos(b)*math.cos(g), -math.cos(b)*math.sin(g), math.sin(b), -self.camera.pos.x, -- magic minus sign :O
-    math.cos(a)*math.sin(g)+math.sin(a)*math.sin(b)*math.cos(g), math.cos(a)*math.cos(g)-math.sin(a)*math.sin(b)*math.sin(g), -math.sin(a)*math.cos(b), self.camera.pos.y,
+    -math.cos(a)*math.sin(g)-math.sin(a)*math.sin(b)*math.cos(g), -math.cos(a)*math.cos(g)+math.sin(a)*math.sin(b)*math.sin(g), math.sin(a)*math.cos(b), self.camera.pos.y,
     math.sin(a)*math.sin(g)-math.cos(a)*math.sin(b)*math.cos(g), math.sin(a)*math.cos(g)+math.cos(a)*math.sin(b)*math.sin(g), math.cos(a)*math.cos(b), -self.camera.pos.z,
     0, 0, 0, 1
   )
@@ -81,6 +84,9 @@ function Scene:draw(debug)
   self.billboards:draw(self.vertices_screen)
   profile("draw_billboards")
 
+  profile("draw_lines")
+  self.lines:draw(self.vertices_screen)
+  profile("draw_lines")
 
   if debug then
     color(7)
@@ -107,6 +113,7 @@ function scene.builder()
   return setmetatable({
     vertices = {},
     faces = {},
+    lines = {},
     billboards = {},
   }, SceneBuilder)
 end
@@ -117,6 +124,7 @@ function SceneBuilder.build(builder)
 
   self.vertices = vertices.of(builder.vertices)
   self.faces = faces.of(builder.faces, builder.vertices)
+  self.lines = lines.of(builder.lines)
   self.billboards = billboards.of(builder.billboards)
 
   self.vertices_screen = vertices.of(builder.vertices)
@@ -146,12 +154,19 @@ function SceneBuilder:add_billboard(p, s)
 end
 
 function SceneBuilder:add_axes(p)
+  local v_start = #self.vertices
   add(self.vertices, p)
-  -- lazy, this is not colored so i use length
-  -- only visible in debug as points
-  add(self.vertices, p + vec(1, 0, 0))
-  add(self.vertices, p + vec(0, 2, 0))
-  add(self.vertices, p + vec(0, 0, 3))
+  local s = 1
+  -- add(self.vertices, p + vec(s, 0, 0))
+  -- add(self.vertices, p + vec(0, s, 0))
+  -- add(self.vertices, p + vec(0, 0, s))
+  add(self.vertices, vec(p.x + s, p.y + 0, p.z + 0))
+  add(self.vertices, vec(p.x + 0, p.y + s, p.z + 0))
+  add(self.vertices, vec(p.x + 0, p.y + 0, p.z + s))
+
+  add(self.lines, {v0 = v_start, v1 = v_start + 1, c = 8})
+  add(self.lines, {v0 = v_start, v1 = v_start + 2, c = 11})
+  add(self.lines, {v0 = v_start, v1 = v_start + 3, c = 12})
 end
   
 function SceneBuilder:add_plane(o, i_hat, j_hat, s)

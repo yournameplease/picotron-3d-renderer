@@ -450,6 +450,7 @@ function Faces:draw_faces(draw_vertices, l)
       lighting_ramp:set_lighting_table(n_dot_l)
 
       -- color(0xC000)
+      -- lines_buffer:add(0xc0, true, L_X0_COL, L_X0_COL, 4, L_LEN, L_LEN, SCREEN_HEIGHT)
       lines_buffer:copy(s, true, L_S_COL, L_S_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
       
       tline3d(lines_buffer, L_LEN * y_min, len, 12, L_LEN)    

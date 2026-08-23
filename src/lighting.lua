@@ -13,9 +13,8 @@ local lighting = {}
 function lighting.new()
   self = setmetatable({}, LightingRamp)
 
-  -- self.dither = dither.new_hatched(true, true)
-  -- self.dither = dither.new_hatched(false, true)
-  self.dither = dither.new_hatched(false, false)
+  -- self.dither = dither.new_hatched(false, false)
+  self.dither = dither.new_bayer()
   -- self.colors = {33, 34, 35, 36, 37}
   self.colors = {34, 35, 36}
   self.color_tables = {0xA0, 0x00, 0xC0}

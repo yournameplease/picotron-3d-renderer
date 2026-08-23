@@ -11,7 +11,7 @@ DitherRamp.__index = DitherRamp
 local dither = {}
 
 function dither.new_hatched(horizontals, verticals)
-local cur = userdata("u8", 8)
+  local cur = userdata("u8", 8)
   ud_util.debugh(cur)
 
   local dithers = {cur}
@@ -56,40 +56,31 @@ local cur = userdata("u8", 8)
   return self
 end
 
-function dither.new_diagonal()
+function dither.new_bayer()
   local cur = userdata("u8", 8)
   ud_util.debugh(cur)
 
   local dithers = {cur}
   cur = cur:copy()
 
-  for i = 0, 2 do
-    local n = 1<<(i-1)
-    local x_start = 8 / (n<<1)
-    local x_step = 8 / (n)
 
-    if i == 0 then
-      x_start = 0
-      n = 1
-    end
-
-    for j = 0, n-1 do
-      local x0 = x_start + j*x_step
-      for y = 0, 7 do
-        local x = (x0 + y)%8
+  function x_step(i)
+    if i == 2 or i == 1 then return 1 else return 0 end
+  end
+  function y_step(i)
+    if i == 2 or i == 3 then return 1 else return 0 end
+  end
+  
+  for i = 0, 3 do
+    for j = 0, 3 do
+      for k = 0, 3 do
+        local y = 4 * y_step(k) + 2*y_step(j) + y_step(i)
+        local x = 4 * x_step(k) + 2*x_step(j) + x_step(i)
         cur:bor(1 << (x), true, y, y, 1, 1, 1, 1)
+        add(dithers, cur)
+        ud_util.debugh(cur)
+        cur = cur:copy()
       end
-      add(dithers, cur)
-      ud_util.debugh(cur)
-      
-      cur = cur:copy()
-      for y = 0, 7 do
-        local x = (x0 + y)%8
-        cur:bor(1 << (x), true, 7-y, 7-y, 1, 1, 1, 1)
-      end
-      add(dithers, cur)
-      cur = cur:copy()
-      ud_util.debugh(cur)
     end 
   end
 

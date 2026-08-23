@@ -74,6 +74,8 @@ function Scene:draw()
   -- pset(v_cam.data, 0, v_cam.length, 2, 4)
 
   print("CPU: " .. stat(1), 400, 3, 7)
+  print("MEM: " .. stat(0))
+  print("FPS: " .. stat(7))
   color(6)
   print("CAM: " .. self.camera.pos.x .. "," .. self.camera.pos.y .. "," .. self.camera.pos.z)
   print("VERTICES: " .. self.vertices.length)

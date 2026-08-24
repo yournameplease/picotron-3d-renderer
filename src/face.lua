@@ -233,7 +233,7 @@ function Faces:draw_faces(draw_vertices, l, lighting)
       -- i think since this is camera space I can just dot with (0, 0, -1) and check if positive?
       local n_dot_camera = -n.z
       if n_dot_camera < 0 then
-        goto continue
+        -- goto continue
       end
 
       profile("face_quad_find_min_max_y")

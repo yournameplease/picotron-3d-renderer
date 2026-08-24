@@ -16,8 +16,8 @@ end
 function cube_game.draw()
   cls(21)
 
-  -- game.stage.scene:draw(true)
-  game.stage.scene:draw()
+  game.stage.scene:draw(true)
+  -- game.stage.scene:draw()
 end
 
 return cube_game

@@ -6,6 +6,7 @@ local ud_util = require("src.userdata")
 local dither = require("src.dither")
 local lighting = require("src.lighting")
 
+local IS_ISO = true
 local BUFFER_MAX = 1024
 local buf = userdata("f64", BUFFER_MAX)
 
@@ -95,10 +96,20 @@ function Scene:draw(debug)
   color(5)
   self.vertices:transform(self.vertices_screen.data, self.world_to_screen)
 
-  self.vertices_screen.data.div(1, self.vertices_screen.data, self.vertices_screen.data, 2, 2, 1, 4, 4, self.vertices_screen.length)
-  -- self.vertices_screen.data:div(self.vertices_screen.data, true, 3, 2, 1, 4, 4, v_proj.length)
-  self.vertices_screen.data:mul(self.vertices_screen.data, true, 2, 0, 1, 4, 4, self.vertices_screen.length)
-  self.vertices_screen.data:mul(self.vertices_screen.data, true, 2, 1, 1, 4, 4, self.vertices_screen.length)
+
+  if not IS_ISO then
+    self.vertices_screen.data.div(1, self.vertices_screen.data, self.vertices_screen.data, 2, 2, 1, 4, 4, self.vertices_screen.length)
+    -- self.vertices_screen.data:div(self.vertices_screen.data, true, 3, 2, 1, 4, 4, v_proj.length)
+    self.vertices_screen.data:mul(self.vertices_screen.data, true, 2, 0, 1, 4, 4, self.vertices_screen.length)
+    self.vertices_screen.data:mul(self.vertices_screen.data, true, 2, 1, 1, 4, 4, self.vertices_screen.length)
+  else
+    -- self.vertices_screen.data.div(1, self.vertices_screen.data, self.vertices_screen.data, 2, 2, 1, 4, 4, self.vertices_screen.length)
+    -- -- self.vertices_screen.data:div(self.vertices_screen.data, true, 3, 2, 1, 4, 4, v_proj.length)
+    -- self.vertices_screen.data:mul(self.vertices_screen.data, true, 2, 0, 1, 4, 4, self.vertices_screen.length)
+    -- self.vertices_screen.data:mul(self.vertices_screen.data, true, 2, 1, 1, 4, 4, self.vertices_screen.length)
+    self.vertices_screen.data.mul(-1, self.vertices_screen.data, self.vertices_screen.data, 2, 2, 1, 4, 4, self.vertices_screen.length)
+  ud_util.debug(self.vertices_screen.data)
+  end
 
   profile("transform_vertices")
 
@@ -159,12 +170,34 @@ function SceneBuilder.build(builder)
 
   self.world_to_cam = userdata("f64", 4, 4)
   self.cam_to_screen = userdata("f64", 4, 4)
-  self.cam_to_screen:set(0, 0,
-    ALPHA_U, 0, 0, 0,
-    0, ALPHA_V, 0, 0,
-    U_0, V_0, 1, 0,
-    0, 0, 0, 1
-  )
+  -- perspective divide
+  if not IS_ISO then
+    self.cam_to_screen:set(0, 0,
+      ALPHA_U, 0, 0, 0,
+      0, ALPHA_V, 0, 0,
+      U_0, V_0, 1, 0,
+      0, 0, 0, 1
+    )
+  else
+    -- self.cam_to_screen:set(0, 0,
+    --   ALPHA_U, 0, 0, 0,
+    --   0, ALPHA_V, 0, 0,
+    --   0, 0, 0, 0,
+    --   3*U_0, 3*V_0, 3, 1
+    -- )
+    local r = 5
+    local l = -5
+    local t = 5
+    local b = -5
+    local f = 5
+    local n = 2
+    self.cam_to_screen:set(0, 0,
+      2 / (r - l) * ALPHA_U, 0, 0, 0,
+      0, 2 / (t - b) * ALPHA_V, 0, 0,
+      0, 0, -2 / (f - n), 0,
+      - (r + l) / (r - l) + U_0, - (t + b) / (t - b) + V_0, -(f + n) / (f - n), 1
+    )
+  end
   self.world_to_screen = userdata("f64", 4, 4)
   
   self.lighting = lighting.new()

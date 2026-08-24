@@ -22,6 +22,12 @@ ALPHA_V = 128
 ---@class Player : Actor
 ---@field speed number
 ---@field fric number
+---@field is_grounded boolean
+---@field can_jump boolean
+---@field dy number
+---@field dy_max number
+---@field dy_jump number
+---@field grav number
 
 ---@alias TileFlags integer
 
@@ -47,6 +53,7 @@ function stage.new(m, w, h, d, n)
     w = w,
     h = h,
     d = d,
+    h_border = 0x1, -- solid border
     origin = origin,
     tiles = {},
     actors = {},
@@ -113,10 +120,15 @@ function stage.new(m, w, h, d, n)
   self.player = {
     v0 = #scene_builder.vertices,
     face = #scene_builder.faces,
-    pos = origin + vec(0, 6, 0),
+    pos = origin + vec(2, 5, 2),
     angle = 0,
+    speed = 0.1,
     half_w = 0.3,
     height = 0.8,
+    dy = 0,
+    dy_jump = 0.2,
+    grav = 0.01,
+    dy_max = 0.3,
   }
   scene_builder:add_plane(vec(0, 0, 0), vec(2*self.player.half_w, 0, 0), vec(0, self.player.height, 0), 33, true)
 
@@ -146,10 +158,11 @@ function Stage:mget(v)
   local y = flr(v.y - self.origin.y)
   local z = flr(v.z - self.origin.z)
 
-  if x < 0 or y < 0 or z < 0 then
-    return 0
+  if x < 0 or z < 0 or x >= self.w or z >= self.d then
+    return self.h_border
+    -- return 0
   end
-  if x >= self.w or y >= self.h or z >= self.d then
+  if y < 0 or y >= self.h then
     return 0
   end
 
@@ -171,12 +184,12 @@ function Stage:try_move(a, dir)
     vec(hw, h, -hw),
   }
 
-  local test_pos = a.pos + vec(0, dir.y, 0)
+  local test_pos = a.pos + dir
   local v_move = true
   for _,o in ipairs(offsets) do
     local tile = self:mget(test_pos + o)
     if tile & 0x01 ~= 0 then
-      printh("hitting tile: ".. tile)
+      -- printh("hitting tile: ".. tile)
       v_move = false
       break
     end
@@ -184,10 +197,10 @@ function Stage:try_move(a, dir)
 
   if v_move then
     a.pos.y = test_pos.y
+    a.pos.x = a.pos.x + dir.x
+    a.pos.z = a.pos.z + dir.z
   end
 
-  a.pos.x = a.pos.x + dir.x
-  a.pos.z = a.pos.z + dir.z
   
 end
 
@@ -195,7 +208,64 @@ function Stage:update(dt)
   self.scene:update(dt)
 
   local p = self.player
-  self:try_move(p, vec(0., -0.1, 0.))
+
+  local joy = {
+    x = 0, y = 0
+  }
+  if btn(0) then joy.x = joy.x - 1 end
+  if btn(1) then joy.x = joy.x + 1 end
+  if btn(2) then joy.y = joy.y - 1 end
+  if btn(3) then joy.y = joy.y + 1 end
+
+  local frame_x = p.speed * vec(math.cos(self.camera.yaw), 0, math.sin(self.camera.yaw))
+  local frame_z = p.speed * vec(math.sin(self.camera.yaw), 0, -math.cos(self.camera.yaw))
+
+  local h_step = joy.x * frame_x + joy.y * frame_z 
+  self:try_move(p, vec(h_step.x, 0, 0))
+  self:try_move(p, vec(0, 0, h_step.z))
+
+  -- if h_step.x ~= 0 and h_step.z ~= 0 then
+  --   self.player.angle = math.atan(h_step.z, h_step.x)
+  -- end
+  p.angle = self.camera.yaw
+
+
+  p.dy = p.dy - p.grav
+  p.dy = mid(-p.dy_max, p.dy, p.dy_max)
+
+  if btnp(5) and p.can_jump then
+    p.dy = p.dy_jump
+    p.can_jump = false
+  end
+
+  local dy = vec(0., p.dy, 0.)
+  self:try_move(p, dy)
+
+
+  do
+    self.player.is_grounded = false
+    local hw = self.player. half_w
+    local dh = 0.3 * self.player.height
+    local offsets = {
+      vec(hw, -dh, hw),
+      vec(-hw, -dh, hw),
+      vec(-hw, -dh, -hw),
+      vec(hw, -dh, -hw),
+    }
+
+    for _,o in ipairs(offsets) do
+      local tile = self:mget(self.player.pos + o)
+      if tile & 0x01 ~= 0 then
+        p.is_grounded = true
+        break
+      end
+    end
+  end
+
+  if p.is_grounded then
+    self.player.can_jump = true
+  end
+  
 end
 
 function Stage:draw()

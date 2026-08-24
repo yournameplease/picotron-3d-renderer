@@ -211,7 +211,7 @@ function Faces:draw_faces(draw_vertices, l, lighting, is_isometric)
   -- self.sort:add(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
   -- self.sort:mul(0.25, true, SORT_Z_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
 
-  draw_vertices.data:take(z_idx, self.sort, 0, SORT_Z_COL, 1, FACES_LEN, SORT_LEN, self.length)
+  draw_vertices.data:take(z_idx, self.sort, 1, SORT_Z_COL, 1, FACES_LEN, SORT_LEN, self.length)
   
   -- self.sort:sort(SORT_Z_COL, true)
   self.sort:sort(SORT_Z_COL, false)

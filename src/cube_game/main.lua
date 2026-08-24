@@ -31,10 +31,10 @@ function cube_game.update()
   local dt = 1/60
   game.t = game.t + dt
 
-  -- if game.t > 3 and not animation_started then
-  --   animation_started = true
-  --   game.stage.scene:animate_camera(camera_next, 3, lerp)
-  -- end
+  if game.t > 3 and not animation_started then
+    animation_started = true
+    game.stage.scene:animate_camera(camera_next, 3, lerp)
+  end
 
   -- game.stage.camera.yaw = game.yaw_0 + 0.05 * math.cos(game.t)
   -- game.stage.camera.pitch = game.pitch_0 + 0.05 * math.sin(game.t)
@@ -42,8 +42,7 @@ function cube_game.update()
   -- game.stage.camera.pitch = lerp(game.pitch_0, game.pitch_1, (1 + math.sin(game.t)) / 2)
 
   
-  game.stage.scene:update(dt)
-
+  game.stage:update(dt)
 end
 
 function cube_game.draw()

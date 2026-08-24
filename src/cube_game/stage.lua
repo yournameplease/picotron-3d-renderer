@@ -27,6 +27,9 @@ ALPHA_V = 128
 
 ---@class Stage
 ---@field scene Scene
+---@field w integer
+---@field h integer
+---@field d integer
 ---@field tiles TileFlags[][][]
 ---@field camera Camera
 ---@field actors Actor[]
@@ -39,9 +42,12 @@ local stage = {}
 
 function stage.new(m, w, h, d, n)
   local origin = vec(-w / 2, -h / 2,  -d/2)
-
   
   local self = setmetatable({
+    w = w,
+    h = h,
+    d = d,
+    origin = origin,
     tiles = {},
     actors = {},
   }, Stage)
@@ -107,7 +113,7 @@ function stage.new(m, w, h, d, n)
   self.player = {
     v0 = #scene_builder.vertices,
     face = #scene_builder.faces,
-    pos = vec(0, 1, 0),
+    pos = origin + vec(0, 6, 0),
     angle = 0,
     half_w = 0.3,
     height = 0.8,
@@ -134,9 +140,62 @@ function stage.new(m, w, h, d, n)
     
 end
 
+---@param v Vec3
+function Stage:mget(v)
+  local x = flr(v.x - self.origin.x)
+  local y = flr(v.y - self.origin.y)
+  local z = flr(v.z - self.origin.z)
+
+  if x < 0 or y < 0 or z < 0 then
+    return 0
+  end
+  if x >= self.w or y >= self.h or z >= self.d then
+    return 0
+  end
+
+  return self.tiles[x][y][z]
+end
+
+function Stage:try_move(a, dir)
+  local hw = a.half_w
+  local h = a.height
+
+  local offsets = {
+    vec(hw, 0, hw),
+    vec(-hw, 0, hw),
+    vec(-hw, 0, -hw),
+    vec(hw, 0, -hw),
+    vec(hw, h, hw),
+    vec(-hw, h, hw),
+    vec(-hw, h, -hw),
+    vec(hw, h, -hw),
+  }
+
+  local test_pos = a.pos + vec(0, dir.y, 0)
+  local v_move = true
+  for _,o in ipairs(offsets) do
+    local tile = self:mget(test_pos + o)
+    if tile & 0x01 ~= 0 then
+      printh("hitting tile: ".. tile)
+      v_move = false
+      break
+    end
+  end
+
+  if v_move then
+    a.pos.y = test_pos.y
+  end
+
+  a.pos.x = a.pos.x + dir.x
+  a.pos.z = a.pos.z + dir.z
+  
+end
+
 function Stage:update(dt)
+  self.scene:update(dt)
 
-
+  local p = self.player
+  self:try_move(p, vec(0., -0.1, 0.))
 end
 
 function Stage:draw()
@@ -145,13 +204,8 @@ function Stage:draw()
     local pos = a.pos
     local ang = a.angle
     local h_step = vec(a.half_w * math.cos(ang), 0, a.half_w * math.sin(ang))
-    -- local h_step = vec(a.half_w * math.sin(ang), 0, a.half_w * math.cos(ang))
-    -- local h_step = vec(a.half_w, 0, 0)
     local v_step = vec(0, a.height, 0)
 
-    color(8)
-    print(tostr(pos) .. ", " .. tostr(h_step) .. ", " .. tostring(v_step))
-    
     self.scene.vertices:move(v0 + 1, pos + h_step + v_step)
     self.scene.vertices:move(v0 + 3, pos - h_step + v_step)
     self.scene.vertices:move(v0 + 0, pos + h_step)

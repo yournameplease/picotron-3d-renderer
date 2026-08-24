@@ -164,7 +164,7 @@ end
 ---@param draw_vertices Vertices
 ---@param l Vertex vector, really
 ---@param lighting LightingRamp
-function Faces:draw_faces(draw_vertices, l, lighting)
+function Faces:draw_faces(draw_vertices, l, lighting, is_isometric)
   -- z-ordering
   -- todo: is sorting by centroid right?  may be a smarter way  
   profile("face_setup")
@@ -207,7 +207,7 @@ function Faces:draw_faces(draw_vertices, l, lighting)
       = self.data:get(0, idx, 16)
     profile("face_quad_get_row")
 
-    if z > 1/FOCAL_LENGTH then
+    if not is_isometric and z > 1/FOCAL_LENGTH then
       break
     else
 
@@ -233,7 +233,7 @@ function Faces:draw_faces(draw_vertices, l, lighting)
       -- i think since this is camera space I can just dot with (0, 0, -1) and check if positive?
       local n_dot_camera = -n.z
       if n_dot_camera < 0 then
-        -- goto continue
+        goto continue
       end
 
       profile("face_quad_find_min_max_y")
@@ -242,7 +242,13 @@ function Faces:draw_faces(draw_vertices, l, lighting)
         [1] = {x = x1, y = y1, w = z1, u = v1_u * z1, v = v1_v * z1},
         [2] = {x = x2, y = y2, w = z2, u = v2_u * z2, v = v2_v * z2},
         [3] = {x = x3, y = y3, w = z3, u = v3_u * z3, v = v3_v * z3},
+        -- [0] = {x = x0, y = y0, w = -1/z0, u = -v0_u / z0, v = -v0_v / z0},
+        -- [1] = {x = x1, y = y1, w = -1/z1, u = -v1_u / z1, v = -v1_v / z1},
+        -- [2] = {x = x2, y = y2, w = -1/z2, u = -v2_u / z2, v = -v2_v / z2},
+        -- [3] = {x = x3, y = y3, w = -1/z3, u = -v3_u / z3, v = -v3_v / z3},
       }
+
+      -- print("Face "..i..": "..x0..","..y0..","..z0..","..x1..","..y1..","..z1..","..x2..","..y2..","..z2..","..x3..","..y3..","..z3)
 
       local y_min = 1e9
       local y_min_i
@@ -454,6 +460,8 @@ function Faces:draw_faces(draw_vertices, l, lighting)
       -- lines_buffer:add(0xc0, true, L_X0_COL, L_X0_COL, 4, L_LEN, L_LEN, SCREEN_HEIGHT)
       lines_buffer:copy(s, true, L_S_COL, L_S_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
       
+      -- ud_util.debug(lines_buffer, y_min, len)
+      -- ud_util.debug(lines_buffer, L_LEN * y_min)
       tline3d(lines_buffer, L_LEN * y_min, len, 12, L_LEN)    
 
       lighting:clear()

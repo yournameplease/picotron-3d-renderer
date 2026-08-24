@@ -107,14 +107,14 @@ function Scene:draw(debug)
     -- -- self.vertices_screen.data:div(self.vertices_screen.data, true, 3, 2, 1, 4, 4, v_proj.length)
     -- self.vertices_screen.data:mul(self.vertices_screen.data, true, 2, 0, 1, 4, 4, self.vertices_screen.length)
     -- self.vertices_screen.data:mul(self.vertices_screen.data, true, 2, 1, 1, 4, 4, self.vertices_screen.length)
-    self.vertices_screen.data.mul(-1, self.vertices_screen.data, self.vertices_screen.data, 2, 2, 1, 4, 4, self.vertices_screen.length)
-  ud_util.debug(self.vertices_screen.data)
+    self.vertices_screen.data.div(-1, self.vertices_screen.data, self.vertices_screen.data, 2, 2, 1, 4, 4, self.vertices_screen.length)
+  -- ud_util.debug(self.vertices_screen.data)
   end
 
   profile("transform_vertices")
 
   profile("draw_faces")
-  local faces_drawn = self.faces:draw_faces(self.vertices_screen, light, self.lighting)
+  local faces_drawn = self.faces:draw_faces(self.vertices_screen, light, self.lighting, IS_ISO)
   profile("draw_faces")
 
   profile("draw_billboards")
@@ -189,8 +189,8 @@ function SceneBuilder.build(builder)
     local l = -5
     local t = 5
     local b = -5
-    local f = 5
-    local n = 2
+    local f = 10
+    local n = 7
     self.cam_to_screen:set(0, 0,
       2 / (r - l) * ALPHA_U, 0, 0, 0,
       0, 2 / (t - b) * ALPHA_V, 0, 0,

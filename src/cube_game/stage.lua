@@ -22,7 +22,7 @@ Stage.__index = Stage
 
 local stage = {}
 
-function stage.new(m, w, h, d)
+function stage.new(m, w, h, d, n)
   local origin = vec(-w / 2, -h / 2,  -d/2)
 
   
@@ -37,7 +37,7 @@ function stage.new(m, w, h, d)
     if x < 0 or y < 0 or z < 0 then return 0 end
     if x >= w or y >= h or z >=d then return 0 end
     
-    return m:get(x + y * w, d-1-z) or 0
+    return m:get(x + y * w, (d * n)+ d-1-z) or 0
   end
   
   for x = 0, w-1 do
@@ -93,9 +93,11 @@ function stage.new(m, w, h, d)
   self.scene = scene_builder:build()
 
   self.camera = {
-    pos = vec(0, 1, -d * 1.5),
+    -- pos = vec(0, 1, -d * 1.5),
+    pos = vec(0, 0, 0),
     -- pitch = 0, roll = 0, yaw = 0.25
-    pitch = -0.2, roll = 0, yaw = -math.pi / 4
+    -- I assume something is wrong, this should be pi/6
+    pitch = -math.pi / 5.3, roll = 0, yaw = -math.pi / 4
   }
   self.scene.camera = self.camera
   

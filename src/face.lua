@@ -110,6 +110,39 @@ end
 function Faces:add(face, vertices)
   assert(self.length < self.capacity)
 
+
+  local u0 = face.v0_u
+  local v0 = face.v0_v
+  local u1 = face.v1_u
+  local v1 = face.v1_v
+  local u2 = face.v2_u
+  local v2 = face.v2_v
+  local u3 = face.v3_u
+  local v3 = face.v3_v
+  if face.s & 0x8000 ~= 0 then
+    printh"hi3"
+    u0, u3 = u3, u0
+    v0, v3 = v3, v0
+    u1, u2 = u2, u1
+    v1, v2 = v2, v1
+  end
+  if face.s & 0x4000 ~= 0 then
+    u0, u1 = u1, u0
+    v0, v1 = v1, v0
+    u2, u3 = u3, u2
+    v2, v3 = v3, v2
+    printh"hi2"
+  end
+  if face.s & 0x2000 ~= 0 then
+    printh"hi1"
+    u0, u2 = u2, u0
+    v0, v2 = v2, v0
+    -- u1, u3 = u3, u1
+    -- v1, v3 = v3, v1
+  end
+
+
+  
   local p1 = {
     x = vertices[1+face.v3].x-vertices[1+face.v0].x,
     y = vertices[1+face.v3].y-vertices[1+face.v0].y,
@@ -132,14 +165,14 @@ function Faces:add(face, vertices)
   self.data:set(NX_COL, self.length, n.x)
   self.data:set(NY_COL, self.length, n.y)
   self.data:set(NZ_COL, self.length, n.z)
-  self.data:set(V0_U_COL, self.length, face.v0_u)
-  self.data:set(V0_V_COL, self.length, face.v0_v)
-  self.data:set(V1_U_COL, self.length, face.v1_u)
-  self.data:set(V1_V_COL, self.length, face.v1_v)
-  self.data:set(V2_U_COL, self.length, face.v2_u)
-  self.data:set(V2_V_COL, self.length, face.v2_v)
-  self.data:set(V3_U_COL, self.length, face.v3_u)
-  self.data:set(V3_V_COL, self.length, face.v3_v)
+  self.data:set(V0_U_COL, self.length, u0)
+  self.data:set(V0_V_COL, self.length, v0)
+  self.data:set(V1_U_COL, self.length, u1)
+  self.data:set(V1_V_COL, self.length, v1)
+  self.data:set(V2_U_COL, self.length, u2)
+  self.data:set(V2_V_COL, self.length, v2)
+  self.data:set(V3_U_COL, self.length, u3)
+  self.data:set(V3_V_COL, self.length, v3)
   self.data:set(S_COL, self.length, face.s)
   self.data:set(C_COL, self.length, face.c)
   self.length = self.length + 1

@@ -6,6 +6,7 @@ local game = {}
 local cube_game = {}
 
 function cube_game.init()
+  printh("init")
   local layers = fetch(DATP.."map/world_1.map")
   -- local layers = fetch(DATP.."map/test.map")
   game.stage = stage.new(layers[1].bmp, 5, 5, 5, 1)

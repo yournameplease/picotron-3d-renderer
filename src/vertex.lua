@@ -46,6 +46,12 @@ function Vertices:add(vertex)
   self.length = self.length + 1
 end
 
+---@param i integer
+---@param new_pos Vertex
+function Vertices:move(i, new_pos)
+  self.data:set(0, i, new_pos.x, new_pos.y, new_pos.z, 1)
+end
+
 ---@param target userdata
 ---@param matrix userdata
 function Vertices:transform(target, matrix)

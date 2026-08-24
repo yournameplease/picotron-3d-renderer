@@ -269,7 +269,7 @@ function SceneBuilder:add_axes(p)
   add(self.lines, {v0 = v_start, v1 = v_start + 3, c = 12})
 end
   
-function SceneBuilder:add_plane(o, i_hat, j_hat, s)
+function SceneBuilder:add_plane(o, i_hat, j_hat, s, two_sided)
   local v_start = #self.vertices
 
   for i = 0, 1 do
@@ -284,6 +284,7 @@ function SceneBuilder:add_plane(o, i_hat, j_hat, s)
     v1 = v_start+1, v1_u = 0, v1_v = 0,
     v2 = v_start+3, v2_u = 16, v2_v = 0,
     v3 = v_start+2, v3_u = 16, v3_v = 16,
+    two_sided = two_sided
   })
 end  
 

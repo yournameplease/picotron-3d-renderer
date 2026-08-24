@@ -14,7 +14,7 @@ local V2_V_COL = 12
 local V3_U_COL = 13
 local V3_V_COL = 14
 local S_COL = 15
-local C_COL = 16
+local FLAGS_COL = 16
 
 local FACES_LEN = 17
 
@@ -67,7 +67,7 @@ lines_buffer:copy(TLINE_FLAGS, true, L_FLAGS_COL, L_FLAGS_COL, 1, L_LEN, L_LEN, 
 ---@field v3_u number
 ---@field v3_v number
 ---@field s integer
----@field c integer
+---@field two_sided boolean
 
 ---@class Faces
 ---@field data userdata
@@ -169,7 +169,7 @@ function Faces:add(face, vertices)
   self.data:set(V3_U_COL, self.length, u3)
   self.data:set(V3_V_COL, self.length, v3)
   self.data:set(S_COL, self.length, face.s)
-  self.data:set(C_COL, self.length, face.c)
+  self.data:set(FLAGS_COL, self.length, face.two_sided and 0 or 1)
   self.length = self.length + 1
 end
 
@@ -230,8 +230,8 @@ function Faces:draw_faces(draw_vertices, l, lighting, is_isometric)
       v1_u, v1_v,
       v2_u, v2_v,
       v3_u, v3_v,
-      s
-      = self.data:get(0, idx, 16)
+      s, flags
+      = self.data:get(0, idx, 17)
     profile("face_quad_get_row")
 
     if not is_isometric and z > 1/FOCAL_LENGTH then
@@ -248,19 +248,21 @@ function Faces:draw_faces(draw_vertices, l, lighting, is_isometric)
       -- backface culling
       -- assume coplanar points
       -- take vector perpindicular to the plane formed by v0->v3, v0->v1 as the normal
-      profile("face_quad_compute_culling")
-      local p1 = {x = x3-x0, y = y3-y0, z = (1/z3)-(1/z0)}
-      local p2 = {x = x1-x0, y = y1-y0, z = (1/z1)-(1/z0)}
-      local n = {
-        x = p1.y * p2.z - p2.y * p1.z,
-        y = p1.x * p2.z - p2.x * p1.z,
-        z = p1.x * p2.y - p2.x * p1.y,
-      }
-      profile("face_quad_compute_culling")
-      -- i think since this is camera space I can just dot with (0, 0, -1) and check if positive?
-      local n_dot_camera = -n.z
-      if n_dot_camera <= 0 then
-        goto continue
+      if flags & 0x1 ~= 0 then
+        profile("face_quad_compute_culling")
+        local p1 = {x = x3-x0, y = y3-y0, z = (1/z3)-(1/z0)}
+        local p2 = {x = x1-x0, y = y1-y0, z = (1/z1)-(1/z0)}
+        local n = {
+          x = p1.y * p2.z - p2.y * p1.z,
+          y = p1.x * p2.z - p2.x * p1.z,
+          z = p1.x * p2.y - p2.x * p1.y,
+        }
+        profile("face_quad_compute_culling")
+        -- i think since this is camera space I can just dot with (0, 0, -1) and check if positive?
+        local n_dot_camera = -n.z
+        if n_dot_camera <= 0 then
+          goto continue
+        end
       end
 
       profile("face_quad_find_min_max_y")

@@ -1,0 +1,1 @@
+---@alias Vec3 userdata

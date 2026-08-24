@@ -23,6 +23,8 @@ function cube_game.init()
     yaw = 0,
     roll = 0
   }
+
+  profile.enabled(true, true)
 end
 
 function cube_game.update()
@@ -41,6 +43,7 @@ function cube_game.update()
 
   
   game.stage.scene:update(dt)
+
 end
 
 function cube_game.draw()
@@ -48,6 +51,7 @@ function cube_game.draw()
 
   -- game.stage.scene:draw(true)
   game.stage.scene:draw()
+  profile.draw()
 end
 
 return cube_game

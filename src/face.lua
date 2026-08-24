@@ -120,7 +120,6 @@ function Faces:add(face, vertices)
   local u3 = face.v3_u
   local v3 = face.v3_v
   if face.s & 0x8000 ~= 0 then
-    printh"hi3"
     u0, u3 = u3, u0
     v0, v3 = v3, v0
     u1, u2 = u2, u1
@@ -131,14 +130,10 @@ function Faces:add(face, vertices)
     v0, v1 = v1, v0
     u2, u3 = u3, u2
     v2, v3 = v3, v2
-    printh"hi2"
   end
   if face.s & 0x2000 ~= 0 then
-    printh"hi1"
     u0, u2 = u2, u0
     v0, v2 = v2, v0
-    -- u1, u3 = u3, u1
-    -- v1, v3 = v3, v1
   end
 
 
@@ -264,7 +259,7 @@ function Faces:draw_faces(draw_vertices, l, lighting, is_isometric)
       profile("face_quad_compute_culling")
       -- i think since this is camera space I can just dot with (0, 0, -1) and check if positive?
       local n_dot_camera = -n.z
-      if n_dot_camera < 0 then
+      if n_dot_camera <= 0 then
         goto continue
       end
 

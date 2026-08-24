@@ -61,6 +61,7 @@ local SceneBuilder = {}
 SceneBuilder.__index = SceneBuilder
 
 ---@class Scene
+---@field t number
 ---@field vertices Vertices
 ---@field vertices_screen Vertices
 ---@field lines Lines
@@ -70,9 +71,45 @@ SceneBuilder.__index = SceneBuilder
 ---@field cam_to_screen userdata
 ---@field world_to_screen userdata
 ---@field camera Camera
+---@field camera_prev Camera
+---@field camera_next Camera
+---@field camera_anim_t number
+---@field camera_anim_dur number
+---@field camera_anim_easing function
 ---@field lighting LightingRamp
 local Scene = {}
 Scene.__index = Scene
+
+function Scene:update(dt)
+  self.t = self.t + dt
+
+
+  if self.camera_anim_dur and self.camera_anim_t <= self.camera_anim_dur then
+    self.camera_anim_t = self.camera_anim_t + dt
+    local t = self.camera_anim_t / self.camera_anim_dur
+    self.camera.pos = vec(
+      self.camera_anim_easing(self.camera_prev.pos.x, self.camera_next.pos.x, t),
+      self.camera_anim_easing(self.camera_prev.pos.y, self.camera_next.pos.y, t),
+      self.camera_anim_easing(self.camera_prev.pos.z, self.camera_next.pos.z, t)
+    )
+    self.camera.pitch = self.camera_anim_easing(self.camera_prev.pitch, self.camera_next.pitch, t)
+    self.camera.roll = self.camera_anim_easing(self.camera_prev.roll, self.camera_next.roll, t)
+    self.camera.yaw = self.camera_anim_easing(self.camera_prev.yaw, self.camera_next.yaw, t)
+  end
+end
+
+function Scene:animate_camera(new, duration, easing)
+  self.camera_prev = {
+    pos = self.camera.pos:copy(),
+    pitch = self.camera.pitch,
+    roll = self.camera.roll,
+    yaw = self.camera.yaw,
+  }
+  self.camera_next = new
+  self.camera_anim_dur = duration
+  self.camera_anim_t = 0
+  self.camera_anim_easing = easing
+end
 
 function Scene:draw(debug)
   profile("draw_setup")
@@ -157,7 +194,9 @@ end
 
 ---@return Scene
 function SceneBuilder.build(builder)
-  local self = setmetatable({}, Scene)
+  local self = setmetatable({
+    t = 0
+  }, Scene)
 
   apply_color_tables()
 

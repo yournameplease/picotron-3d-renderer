@@ -88,7 +88,7 @@ function stage.new(m, w, h, d, n)
   end
 
 
-  scene_builder:add_axes(vec(0, 0, 0))
+  -- scene_builder:add_axes(vec(0, 0, 0))
   -- scene_builder:add_axes(origin)
   self.scene = scene_builder:build()
 

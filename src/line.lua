@@ -47,7 +47,6 @@ function lines.of(vs)
   for _, v in ipairs(vs) do
     self:add(v)
   end
-  -- ud_util.debugh(self.data)
   return self
 end
 

@@ -102,7 +102,6 @@ function faces.of(vs, vertices)
   for _, v in ipairs(vs) do
     self:add(v, vertices)
   end
-  -- ud_util.debugh(self.data)
   return self
 end
 

@@ -12,7 +12,6 @@ local dither = {}
 
 function dither.new_hatched(horizontals, verticals)
   local cur = userdata("u8", 8)
-  ud_util.debugh(cur)
 
   local dithers = {cur}
   cur = cur:copy()
@@ -35,7 +34,6 @@ function dither.new_hatched(horizontals, verticals)
         cur:bor(1 << (x), true, y, y, 1, 1, 1, 1)
       end
       add(dithers, cur)
-      ud_util.debugh(cur)
       
       cur = cur:copy()
       for k = 0, 7 do
@@ -45,7 +43,6 @@ function dither.new_hatched(horizontals, verticals)
       end
       add(dithers, cur)
       cur = cur:copy()
-      ud_util.debugh(cur)
     end 
   end
 
@@ -58,7 +55,6 @@ end
 
 function dither.new_bayer()
   local cur = userdata("u8", 8)
-  ud_util.debugh(cur)
 
   local dithers = {cur}
   cur = cur:copy()
@@ -78,7 +74,6 @@ function dither.new_bayer()
         local x = 4 * x_step(k) + 2*x_step(j) + x_step(i)
         cur:bor(1 << (x), true, y, y, 1, 1, 1, 1)
         add(dithers, cur)
-        ud_util.debugh(cur)
         cur = cur:copy()
       end
     end 

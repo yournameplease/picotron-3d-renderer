@@ -9,7 +9,7 @@ function cube_game.init()
   printh("init")
   local layers = fetch(DATP.."map/world_1.map")
   -- local layers = fetch(DATP.."map/test.map")
-  game.stage = stage.new(layers[1].bmp, 5, 5, 5, 1)
+  game.stage = stage.new(layers[1].bmp, 6, 6, 6, 1)
 
   game.t = 0
   game.yaw_0 = game.stage.camera.yaw

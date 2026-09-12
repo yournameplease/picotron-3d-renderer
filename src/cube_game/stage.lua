@@ -116,6 +116,8 @@ function stage.new(m, w, h, d, n)
         
         self.tiles[x][y][z] = fget(tile)
 
+        local is_different_top_and_bottom = tile & 0x01 ~= 0
+        
         if tile ~= 0 then
           for x_step = -1, 1, 2 do
             local neighbor = getm(x+x_step, y, z)
@@ -135,7 +137,12 @@ function stage.new(m, w, h, d, n)
               local o = origin + vec(x, y + offset, z)
               local i_hat = offset == 0 and vec(0, 0, 1) or vec(1, 0, 0)
               local j_hat = offset == 0 and vec(1, 0, 0) or vec(0, 0, 1)
-              scene_builder:add_plane(o, i_hat, j_hat, tile)
+
+              local t = tile
+              if is_different_top_and_bottom then
+                t = t - y_step
+              end
+              scene_builder:add_plane(o, i_hat, j_hat, t)
             end
           end
           for z_step = -1, 1, 2 do

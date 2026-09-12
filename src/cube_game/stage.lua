@@ -18,6 +18,9 @@ ALPHA_V = 128
 ---@field pos Vec3
 ---@field angle number
 
+---@class Coin : Actor
+---@field t number
+---@field d_angle number
 
 ---@class Player : Actor
 ---@field speed number
@@ -38,6 +41,8 @@ ALPHA_V = 128
 ---@field d integer
 ---@field tiles TileFlags[][][]
 ---@field camera Camera
+---@field camera_x integer
+---@field camera_y integer
 ---@field actors Actor[]
 ---@field player Player
 
@@ -46,6 +51,28 @@ Stage.__index = Stage
 
 local stage = {}
 
+local function to_camera_angles(x, y)
+  local pitch = 0
+
+  if y <= -2 then
+    pitch = math.pi / 2
+  elseif y >= 2 then
+    pitch = -math.pi / 2
+  else
+    local y_factor = x % 2 == 0
+    and math.pi / 6
+    or math.pi / 5.3
+
+    pitch = - y_factor * y
+  end
+    
+  
+  return {
+    pos = vec(0, 0, 0),
+    pitch = pitch, roll = 0, yaw = math.pi / 4 * x
+  }
+end
+
 function stage.new(m, w, h, d, n)
   local origin = vec(-w / 2, -h / 2,  -d/2)
   
@@ -53,6 +80,8 @@ function stage.new(m, w, h, d, n)
     w = w,
     h = h,
     d = d,
+    camera_x = 1,
+    camera_y = 1,
     h_border = 0x1, -- solid border
     origin = origin,
     tiles = {},
@@ -76,6 +105,14 @@ function stage.new(m, w, h, d, n)
       for z = 0, d-1 do
         local tile = getm(x, y, z)
         printh("TILE:"..x .. "," .. y .. "," .. z .. ": ".. tile)
+        
+        if tile & 0x80 ~= 0 then
+          -- actor, custom logic
+
+          
+          
+          tile = 0
+        end
         
         self.tiles[x][y][z] = fget(tile)
 
@@ -126,7 +163,7 @@ function stage.new(m, w, h, d, n)
     half_w = 0.3,
     height = 0.8,
     dy = 0,
-    dy_jump = 0.2,
+    dy_jump = 0.155,
     grav = 0.01,
     dy_max = 0.3,
   }
@@ -138,13 +175,7 @@ function stage.new(m, w, h, d, n)
   -- scene_builder:add_axes(origin)
   self.scene = scene_builder:build()
 
-  self.camera = {
-    -- pos = vec(0, 1, -d * 1.5),
-    pos = vec(0, 0, 0),
-    -- pitch = 0, roll = 0, yaw = 0.25
-    -- I assume something is wrong, this should be pi/6
-    pitch = -math.pi / 5.3, roll = 0, yaw = -math.pi / 4
-  }
+  self.camera = to_camera_angles(self.camera_x, self.camera_y)
   self.scene.camera = self.camera
   
 
@@ -204,18 +235,28 @@ function Stage:try_move(a, dir)
   
 end
 
+---param a Actor
+function Stage:spawn_actor()
+  
+end
+
 function Stage:update(dt)
   self.scene:update(dt)
 
   local p = self.player
 
   local joy = {
-    x = 0, y = 0
+    x = 0, y = 0,
+    x2 = 0, y2 = 0,
   }
   if btn(0) then joy.x = joy.x - 1 end
   if btn(1) then joy.x = joy.x + 1 end
   if btn(2) then joy.y = joy.y - 1 end
   if btn(3) then joy.y = joy.y + 1 end
+  if btn(8) then joy.x2 = joy.x2 - 1 end
+  if btn(9) then joy.x2 = joy.x2 + 1 end
+  if btn(10) then joy.y2 = joy.y2 - 1 end
+  if btn(11) then joy.y2 = joy.y2 + 1 end
 
   local frame_x = p.speed * vec(math.cos(self.camera.yaw), 0, math.sin(self.camera.yaw))
   local frame_z = p.speed * vec(math.sin(self.camera.yaw), 0, -math.cos(self.camera.yaw))
@@ -224,6 +265,18 @@ function Stage:update(dt)
   self:try_move(p, vec(h_step.x, 0, 0))
   self:try_move(p, vec(0, 0, h_step.z))
 
+  if (joy.x2 ~= 0 or joy.y2 ~= 0) and (self.scene.camera_anim_t == nil or self.scene.camera_anim_t >= self.scene.camera_anim_dur) then
+    self.camera_x = self.camera_x + joy.x2
+    self.camera_y = mid(-2, self.camera_y + joy.y2, 2)
+
+    printh("animating camera" .. self.camera_x .. "," .. self.camera_y)
+    self.scene:animate_camera(
+      to_camera_angles(self.camera_x, self.camera_y),
+      1,
+      lerp
+    )
+  end
+  
   -- if h_step.x ~= 0 and h_step.z ~= 0 then
   --   self.player.angle = math.atan(h_step.z, h_step.x)
   -- end
@@ -240,7 +293,6 @@ function Stage:update(dt)
 
   local dy = vec(0., p.dy, 0.)
   self:try_move(p, dy)
-
 
   do
     self.player.is_grounded = false

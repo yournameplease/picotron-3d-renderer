@@ -193,7 +193,6 @@ end
 ---@param lighting LightingRamp
 function Faces:draw_faces(draw_vertices, l, lighting, is_isometric)
   -- z-ordering
-  -- todo: is sorting by centroid right?  may be a smarter way  
   profile("face_setup")
   local z_idx = self.data:mul(VERTICES_LEN):add(2)
 
@@ -201,6 +200,7 @@ function Faces:draw_faces(draw_vertices, l, lighting, is_isometric)
     self.sort:set(SORT_IDX_COL, i, i)
   end
 
+  -- todo: store centroid or something
   -- draw_vertices.data:take(z_idx, self.sort, 0, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
   -- self.sort:copy(self.sort, true, SORT_TEMP_COL, SORT_Z_COL, 1, SORT_LEN, SORT_LEN, self.length)
   -- draw_vertices.data:take(z_idx, self.sort, 1, SORT_TEMP_COL, 1, FACES_LEN, SORT_LEN, self.length)
@@ -271,10 +271,6 @@ function Faces:draw_faces(draw_vertices, l, lighting, is_isometric)
         [1] = {x = x1, y = y1, w = z1, u = v1_u * z1, v = v1_v * z1},
         [2] = {x = x2, y = y2, w = z2, u = v2_u * z2, v = v2_v * z2},
         [3] = {x = x3, y = y3, w = z3, u = v3_u * z3, v = v3_v * z3},
-        -- [0] = {x = x0, y = y0, w = -1/z0, u = -v0_u / z0, v = -v0_v / z0},
-        -- [1] = {x = x1, y = y1, w = -1/z1, u = -v1_u / z1, v = -v1_v / z1},
-        -- [2] = {x = x2, y = y2, w = -1/z2, u = -v2_u / z2, v = -v2_v / z2},
-        -- [3] = {x = x3, y = y3, w = -1/z3, u = -v3_u / z3, v = -v3_v / z3},
       }
 
       -- print("Face "..i..": "..x0..","..y0..","..z0..","..x1..","..y1..","..z1..","..x2..","..y2..","..z2..","..x3..","..y3..","..z3)
@@ -485,12 +481,8 @@ function Faces:draw_faces(draw_vertices, l, lighting, is_isometric)
       n_dot_l = n_dot_l * 0.8 + 0.1
       lighting:set_lighting_table(n_dot_l)
 
-      -- color(0xC000)
-      -- lines_buffer:add(0xc0, true, L_X0_COL, L_X0_COL, 4, L_LEN, L_LEN, SCREEN_HEIGHT)
       lines_buffer:copy(s, true, L_S_COL, L_S_COL, 1, L_LEN, L_LEN, SCREEN_HEIGHT)
       
-      -- ud_util.debug(lines_buffer, y_min, len)
-      -- ud_util.debug(lines_buffer, L_LEN * y_min)
       tline3d(lines_buffer, L_LEN * y_min, len, 12, L_LEN)    
 
       lighting:clear()

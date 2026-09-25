@@ -6,7 +6,6 @@ local ud_util = require("src.userdata")
 local dither = require("src.dither")
 local lighting = require("src.lighting")
 
-local IS_ISO = true
 local BUFFER_MAX = 1024
 local buf = userdata("f64", BUFFER_MAX)
 
@@ -57,6 +56,7 @@ end
 ---@field faces Face[]
 ---@field lines Line[]
 ---@field billboards Billboard[]
+---@field is_iso boolean
 local SceneBuilder = {}
 SceneBuilder.__index = SceneBuilder
 
@@ -77,6 +77,7 @@ SceneBuilder.__index = SceneBuilder
 ---@field camera_anim_dur number
 ---@field camera_anim_easing function
 ---@field lighting LightingRamp
+---@field is_iso boolean
 local Scene = {}
 Scene.__index = Scene
 
@@ -134,7 +135,7 @@ function Scene:draw(debug)
   self.vertices:transform(self.vertices_screen.data, self.world_to_screen)
 
 
-  if not IS_ISO then
+  if not self.is_iso then
     self.vertices_screen.data.div(1, self.vertices_screen.data, self.vertices_screen.data, 2, 2, 1, 4, 4, self.vertices_screen.length)
     -- self.vertices_screen.data:div(self.vertices_screen.data, true, 3, 2, 1, 4, 4, v_proj.length)
     self.vertices_screen.data:mul(self.vertices_screen.data, true, 2, 0, 1, 4, 4, self.vertices_screen.length)
@@ -151,7 +152,7 @@ function Scene:draw(debug)
   profile("transform_vertices")
 
   profile("draw_faces")
-  local faces_drawn = self.faces:draw_faces(self.vertices_screen, light, self.lighting, IS_ISO)
+  local faces_drawn = self.faces:draw_faces(self.vertices_screen, light, self.lighting, self.is_iso)
   profile("draw_faces")
 
   profile("draw_billboards")
@@ -192,6 +193,11 @@ function scene.builder()
   }, SceneBuilder)
 end
 
+function SceneBuilder:isometric()
+  self.is_iso = true
+  return self
+end
+
 ---@return Scene
 function SceneBuilder.build(builder)
   local self = setmetatable({
@@ -210,7 +216,7 @@ function SceneBuilder.build(builder)
   self.world_to_cam = userdata("f64", 4, 4)
   self.cam_to_screen = userdata("f64", 4, 4)
   -- perspective divide
-  if not IS_ISO then
+  if not builder.is_iso then
     self.cam_to_screen:set(0, 0,
       ALPHA_U, 0, 0, 0,
       0, ALPHA_V, 0, 0,
@@ -239,6 +245,7 @@ function SceneBuilder.build(builder)
   end
   self.world_to_screen = userdata("f64", 4, 4)
   
+  self.is_iso = builder.is_iso
   self.lighting = lighting.new()
 
   return self
@@ -302,44 +309,44 @@ function SceneBuilder:add_cube(o, i_hat, j_hat, k_hat, s)
   add(self.faces, {
     s = s,
     v0 = v_start+0, v0_u = 0, v0_v = 0,
-    v1 = v_start+2, v1_u = 16, v1_v = 0,
+    v3 = v_start+2, v1_u = 16, v1_v = 0,
     v2 = v_start+3, v2_u = 16, v2_v = 16,
-    v3 = v_start+1, v3_u = 0, v3_v = 16,
+    v1 = v_start+1, v3_u = 0, v3_v = 16,
   })
   add(self.faces, {
     s = s,
     v0 = v_start+4, v0_u = 0, v0_v = 0,
-    v1 = v_start+5, v1_u = 16, v1_v = 0,
+    v3 = v_start+5, v1_u = 16, v1_v = 0,
     v2 = v_start+7, v2_u = 16, v2_v = 16,
-    v3 = v_start+6, v3_u = 0, v3_v = 16,
+    v1 = v_start+6, v3_u = 0, v3_v = 16,
   })
   add(self.faces, {
     s = s,
     v0 = v_start+0, v0_u = 0, v0_v = 0,
-    v1 = v_start+1, v1_u = 16, v1_v = 0,
+    v3 = v_start+1, v1_u = 16, v1_v = 0,
     v2 = v_start+5, v2_u = 16, v2_v = 16,
-    v3 = v_start+4, v3_u = 0, v3_v = 16,
+    v1 = v_start+4, v3_u = 0, v3_v = 16,
   })
   add(self.faces, {
     s = s,
     v0 = v_start+2, v0_u = 0, v0_v = 0,
-    v1 = v_start+6, v1_u = 16, v1_v = 0,
+    v3 = v_start+6, v1_u = 16, v1_v = 0,
     v2 = v_start+7, v2_u = 16, v2_v = 16,
-    v3 = v_start+3, v3_u = 0, v3_v = 16,
+    v1 = v_start+3, v3_u = 0, v3_v = 16,
   })
   add(self.faces, {
     s = s,
     v0 = v_start+0, v0_u = 0, v0_v = 0,
-    v1 = v_start+4, v1_u = 16, v1_v = 0,
+    v3 = v_start+4, v1_u = 16, v1_v = 0,
     v2 = v_start+6, v2_u = 16, v2_v = 16,
-    v3 = v_start+2, v3_u = 0, v3_v = 16,
+    v1 = v_start+2, v3_u = 0, v3_v = 16,
   })
   add(self.faces, {
     s = s,
     v0 = v_start+1, v0_u = 0, v0_v = 0,
-    v1 = v_start+3, v1_u = 16, v1_v = 0,
+    v3 = v_start+3, v1_u = 16, v1_v = 0,
     v2 = v_start+7, v2_u = 16, v2_v = 16,
-    v3 = v_start+5, v3_u = 0, v3_v = 16,
+    v1 = v_start+5, v3_u = 0, v3_v = 16,
   })
 end
 
@@ -382,9 +389,9 @@ function SceneBuilder:add_sphere(o, r, ring_vertices, layers, s)
       add(self.faces, {
         s = s,
         v0 = v_0, v0_u = 0, v0_v = 0,
-        v1 = v_3, v1_u = 16, v1_v = 0,
+        v3 = v_3, v1_u = 16, v1_v = 0,
         v2 = v_2, v2_u = 16, v2_v = 16,
-        v3 = v_1, v3_u = 0, v3_v = 16,
+        v1 = v_1, v3_u = 0, v3_v = 16,
       })
       printh(i..","..j..": "..tostr(vec(v_0, v_1, v_2, v_3)))
     end

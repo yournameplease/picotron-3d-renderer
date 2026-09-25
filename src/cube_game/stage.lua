@@ -89,7 +89,7 @@ function stage.new(m, w, h, d, n)
   }, Stage)
 
 
-  local scene_builder = scene.builder()
+  local scene_builder = scene.builder():isometric()
     
   local getm = function(x, y, z)
     if x < 0 or y < 0 or z < 0 then return 0 end
